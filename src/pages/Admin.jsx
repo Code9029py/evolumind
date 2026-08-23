@@ -2,9 +2,12 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
+  ArrowLeftRight,
   BookCheck,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Edit2,
   Eye,
   EyeOff,
@@ -19,6 +22,7 @@ import {
   Save,
   Settings,
   Sparkles,
+  Star,
   Trash2,
   User,
   X,
@@ -31,8 +35,6 @@ import {
   saveStoredThemes,
   getStoredCategories,
   saveStoredCategories,
-  DEFAULT_THEMES,
-  DEFAULT_CATEGORIES,
 } from '../services/catalogStorage.js';
 
 const COLOR_PRESETS = [
@@ -56,7 +58,7 @@ const initialProductForm = {
   pages: '',
   targetAudience: '',
   price: '',
-  status: 'disponible', // 'disponible' | 'oculto' | 'eliminado'
+  status: 'disponible',
   format: 'PDF interactivo',
   featured: false,
   accent: '#0057d9',
@@ -204,6 +206,7 @@ export default function Admin() {
     showToast(`Cuadernillo marcado como "${nextStatus}"`);
   };
 
+  // Multiple Images Management: Add, Remove, Move Left, Move Right, Set as Cover
   const handleAddImage = () => {
     if (!newImageUrl.trim()) return;
     const currentImages = editingProduct.images || [];
@@ -212,6 +215,7 @@ export default function Admin() {
       images: [...currentImages, newImageUrl.trim()],
     });
     setNewImageUrl('');
+    showToast('Imagen agregada a la galería');
   };
 
   const handleRemoveImage = (indexToRemove) => {
@@ -221,6 +225,43 @@ export default function Admin() {
       ...editingProduct,
       images: updated,
     });
+    showToast('Imagen eliminada');
+  };
+
+  const handleMoveImageLeft = (index) => {
+    if (index <= 0) return;
+    const currentImages = [...(editingProduct.images || [])];
+    const temp = currentImages[index - 1];
+    currentImages[index - 1] = currentImages[index];
+    currentImages[index] = temp;
+    setEditingProduct({
+      ...editingProduct,
+      images: currentImages,
+    });
+  };
+
+  const handleMoveImageRight = (index) => {
+    const currentImages = [...(editingProduct.images || [])];
+    if (index >= currentImages.length - 1) return;
+    const temp = currentImages[index + 1];
+    currentImages[index + 1] = currentImages[index];
+    currentImages[index] = temp;
+    setEditingProduct({
+      ...editingProduct,
+      images: currentImages,
+    });
+  };
+
+  const handleSetCover = (index) => {
+    if (index === 0) return;
+    const currentImages = [...(editingProduct.images || [])];
+    const [selected] = currentImages.splice(index, 1);
+    currentImages.unshift(selected);
+    setEditingProduct({
+      ...editingProduct,
+      images: currentImages,
+    });
+    showToast('Portada actualizada');
   };
 
   // Delete theme or category with confirmation
@@ -357,6 +398,8 @@ export default function Admin() {
       ? editingProduct.modulesText.split('\n').map((m) => m.trim()).filter(Boolean)
       : editingProduct.modules || [];
 
+    const firstImage = editingProduct.images && editingProduct.images.length > 0 ? editingProduct.images[0] : editingProduct.imageUrl;
+
     return {
       ...editingProduct,
       title: editingProduct.title || 'Título del Cuadernillo',
@@ -368,7 +411,8 @@ export default function Admin() {
       longDescription: editingProduct.longDescription || 'Explicación detallada del contenido del cuadernillo...',
       targetAudience: editingProduct.targetAudience || 'Público objetivo y recomendaciones...',
       modules: modulesList.length > 0 ? modulesList : ['Módulo 1: Introducción y fundamentos...', 'Módulo 2: Ejercicios prácticos...'],
-      imageUrl: editingProduct.images && editingProduct.images.length > 0 ? editingProduct.images[0] : editingProduct.imageUrl,
+      images: editingProduct.images || [],
+      imageUrl: firstImage,
     };
   }, [editingProduct, isCustomTheme, customThemeValue, isCustomCategory, customCategoryValue]);
 
@@ -859,14 +903,14 @@ export default function Admin() {
                     </div>
                   </label>
 
-                  {/* IMÁGENES MÚLTIPLES */}
+                  {/* IMÁGENES MÚLTIPLES CON GESTOR AVANZADO (AGREGAR, REORDENAR, PORTADA Y BORRAR) */}
                   <div className="admin-images-section">
                     <label className="form-field">
-                      <span>Imágenes del Cuadernillo (URLs)</span>
+                      <span>Imágenes del Cuadernillo (JPG, WebP, PNG, SVG o URLs)</span>
                       <div className="add-image-bar">
                         <input
-                          type="url"
-                          placeholder="https://ejemplo.com/portada.jpg"
+                          type="text"
+                          placeholder="Ej: /books/demo/portada.webp o https://..."
                           value={newImageUrl}
                           onChange={(e) => setNewImageUrl(e.target.value)}
                         />
@@ -882,21 +926,60 @@ export default function Admin() {
                     </label>
 
                     {editingProduct.images && editingProduct.images.length > 0 ? (
-                      <div className="images-thumbs-grid">
-                        {editingProduct.images.map((url, idx) => (
-                          <div className="thumb-item" key={url + idx}>
-                            <img src={url} alt={`Foto ${idx + 1}`} />
-                            <span className="thumb-index-tag">{idx === 0 ? 'Portada' : `#${idx + 1}`}</span>
-                            <button
-                              type="button"
-                              className="remove-thumb-btn"
-                              onClick={() => handleRemoveImage(idx)}
-                              title="Eliminar foto"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        ))}
+                      <div className="images-thumbs-grid advanced-gallery-manager">
+                        {editingProduct.images.map((url, idx) => {
+                          const isCover = idx === 0;
+                          return (
+                            <div className={`thumb-item ${isCover ? 'cover-item' : ''}`} key={url + idx}>
+                              <img src={url} alt={`Foto ${idx + 1}`} />
+                              <span className="thumb-index-tag">
+                                {isCover ? '★ Portada' : `#${idx + 1}`}
+                              </span>
+
+                              {/* Barra de acciones de imagen: mover izq, mover der, portada y borrar */}
+                              <div className="thumb-actions-overlay">
+                                {idx > 0 && (
+                                  <button
+                                    type="button"
+                                    className="thumb-action-btn"
+                                    onClick={() => handleMoveImageLeft(idx)}
+                                    title="Mover a la izquierda"
+                                  >
+                                    <ChevronLeft size={13} />
+                                  </button>
+                                )}
+                                {!isCover && (
+                                  <button
+                                    type="button"
+                                    className="thumb-action-btn star-btn"
+                                    onClick={() => handleSetCover(idx)}
+                                    title="Hacer Portada Principal"
+                                  >
+                                    <Star size={12} />
+                                  </button>
+                                )}
+                                {idx < editingProduct.images.length - 1 && (
+                                  <button
+                                    type="button"
+                                    className="thumb-action-btn"
+                                    onClick={() => handleMoveImageRight(idx)}
+                                    title="Mover a la derecha"
+                                  >
+                                    <ChevronRight size={13} />
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  className="thumb-action-btn delete-btn"
+                                  onClick={() => handleRemoveImage(idx)}
+                                  title="Eliminar foto"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="no-images-help">

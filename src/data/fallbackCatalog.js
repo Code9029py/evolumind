@@ -1,5 +1,34 @@
 export const fallbackCatalog = [
   {
+    id: 'desarrollo-infantil',
+    title: 'Cuadernillo de Estimulación y Desarrollo Infantil',
+    theme: 'Infantil',
+    category: 'Acompañamiento Emocional',
+    shortDescription: 'Actividades lúdicas de preescritura, reconocimiento de emociones y dinámicas para la primera infancia.',
+    longDescription:
+      'Material psicopedagógico diseñado para familias, docentes y terapeutas. Contiene ejercicios de grafomotricidad, expresión de emociones básicas, asociación de letras y números y dinámicas guiadas para potenciar el desarrollo cognitivo y afectivo en niños.',
+    modules: [
+      'Módulo 1: Reconocimiento y dibujo de emociones básicas.',
+      'Módulo 2: Trazos, grafomotricidad y coordinación viso-motriz.',
+      'Módulo 3: Asociación de letras, fonemas y primeras palabras.',
+      'Módulo 4: Juegos de concentración, números y conteo lúdico.',
+      'Módulo 5: Guía para padres: acompañamiento positivo en el aprendizaje.',
+    ],
+    pages: '52 páginas',
+    targetAudience: 'Padres, educadores y profesionales del desarrollo y estimulación temprana.',
+    price: '50.000 Gs.',
+    status: 'disponible',
+    format: 'PDF interactivo',
+    featured: true,
+    accent: '#2ec4b6',
+    images: [
+      '/books/demo/portada-preescolar.webp',
+      '/books/demo/pagina-actividad.webp',
+      '/books/demo/portada-escritura.webp',
+    ],
+    imageUrl: '/books/demo/portada-preescolar.webp',
+  },
+  {
     id: 'ansiedad',
     title: 'Cuadernillo de Ansiedad',
     theme: 'Ansiedad',
@@ -21,6 +50,7 @@ export const fallbackCatalog = [
     format: 'PDF interactivo',
     featured: true,
     accent: '#0057d9',
+    images: [],
     imageUrl: '',
   },
   {
@@ -45,6 +75,7 @@ export const fallbackCatalog = [
     format: 'PDF interactivo',
     featured: true,
     accent: '#2ec4b6',
+    images: [],
     imageUrl: '',
   },
   {
@@ -69,6 +100,7 @@ export const fallbackCatalog = [
     format: 'PDF interactivo',
     featured: true,
     accent: '#1689e8',
+    images: [],
     imageUrl: '',
   },
   {
@@ -93,6 +125,7 @@ export const fallbackCatalog = [
     format: 'PDF interactivo',
     featured: false,
     accent: '#061b8f',
+    images: [],
     imageUrl: '',
   },
   {
@@ -117,6 +150,7 @@ export const fallbackCatalog = [
     format: 'PDF interactivo',
     featured: false,
     accent: '#ff7a70',
+    images: [],
     imageUrl: '',
   },
 ];

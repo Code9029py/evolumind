@@ -931,22 +931,28 @@ main {
 
 .product-art {
   position: relative;
-  min-height: 170px;
+  min-height: 190px;
+  height: 200px;
   border-radius: 18px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background:
     radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.35), transparent 40%),
     linear-gradient(135deg, var(--accent, #0057d9), #061b8f);
   overflow: hidden;
   color: white;
   margin-bottom: 0.9rem;
+  padding: 8px;
 }
 
 .product-cover-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* Perfect for book covers, vertical graphics & transparent PNGs */
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  background: white;
 }
 
 .product-book-visual {
@@ -1005,6 +1011,7 @@ main {
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
+  z-index: 5;
 }
 
 .product-status-pill.available {
@@ -1199,24 +1206,26 @@ main {
 }
 
 .dialog-art {
-  min-height: 180px;
+  min-height: 220px;
+  height: 230px;
+  padding: 10px;
 }
 
 .dialog-thumbnails-row {
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 4px 2px;
 }
 
 .dialog-thumb-btn {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 10px;
   border: 2px solid transparent;
-  padding: 0;
+  padding: 2px;
   overflow: hidden;
-  background: var(--color-bg);
+  background: #f0f4fc;
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.2s ease;
@@ -1224,13 +1233,14 @@ main {
 
 .dialog-thumb-btn.active {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(0, 87, 217, 0.3);
+  box-shadow: 0 0 0 2px rgba(0, 87, 217, 0.35);
 }
 
 .dialog-thumb-btn img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  border-radius: 6px;
 }
 
 .dialog-quick-specs {
@@ -1874,7 +1884,7 @@ main {
 
 .input-icon-wrap input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(57, 199, 243, 0.25);
+  box-shadow: 0 0 0 4px rgba(57, 199, 253, 0.25);
 }
 
 .admin-error-box {
@@ -2057,12 +2067,14 @@ main {
   background: linear-gradient(135deg, var(--accent), var(--color-deep));
   color: white;
   overflow: hidden;
+  padding: 3px;
 }
 
 .admin-badge-thumb {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  border-radius: 10px;
 }
 
 .admin-row-info {
@@ -2299,51 +2311,96 @@ main {
 
 .images-thumbs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 0.6rem;
-  margin-top: 0.8rem;
+  grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.9rem;
 }
 
 .thumb-item {
   position: relative;
-  height: 80px;
-  border-radius: 10px;
+  height: 105px;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--color-border);
+  border: 1.5px solid var(--color-border);
   background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: all 0.2s ease;
+}
+
+.thumb-item.cover-item {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 87, 217, 0.35);
 }
 
 .thumb-item img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 .thumb-index-tag {
   position: absolute;
   bottom: 4px;
   left: 4px;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(7, 19, 79, 0.85);
   color: white;
   font-size: 0.65rem;
   font-weight: 800;
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+  z-index: 5;
 }
 
-.remove-thumb-btn {
+.thumb-actions-overlay {
   position: absolute;
   top: 4px;
   right: 4px;
+  display: flex;
+  gap: 3px;
+  z-index: 6;
+}
+
+.thumb-action-btn {
   width: 22px;
   height: 22px;
-  border-radius: 50%;
-  background: #fee4e2;
-  color: #d92d20;
-  border: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-night);
+  border: 1px solid rgba(0, 87, 217, 0.15);
   display: grid;
   place-items: center;
   cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.thumb-action-btn:hover {
+  transform: scale(1.12);
+  background: white;
+  color: var(--color-primary);
+}
+
+.thumb-action-btn.star-btn {
+  color: #d97706;
+}
+
+.thumb-action-btn.star-btn:hover {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.thumb-action-btn.delete-btn {
+  color: #d92d20;
+}
+
+.thumb-action-btn.delete-btn:hover {
+  background: #fee4e2;
+  color: #b42318;
 }
 
 .no-images-help {
