@@ -946,6 +946,10 @@ main {
   padding: 8px;
 }
 
+.product-art.interactive-art {
+  cursor: pointer;
+}
+
 .product-cover-img {
   width: 100%;
   height: 100%;
@@ -953,6 +957,11 @@ main {
   border-radius: 12px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
   background: white;
+  transition: transform 0.2s ease;
+}
+
+.product-art.interactive-art:hover .product-cover-img {
+  transform: scale(1.02);
 }
 
 .product-book-visual {
@@ -1024,49 +1033,70 @@ main {
   color: white;
 }
 
-/* CARD CAROUSEL CONTROLS */
-.card-carousel-controls {
+/* SIDE FLOATING ARROWS (Option 1) */
+.card-side-arrow {
   position: absolute;
-  bottom: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--color-night);
+  border: 1px solid rgba(0, 87, 217, 0.15);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.15s ease;
+  backdrop-filter: blur(4px);
+}
+
+.card-side-arrow.left {
+  left: 6px;
+}
+
+.card-side-arrow.right {
+  right: 6px;
+}
+
+.card-side-arrow:hover {
+  transform: translateY(-50%) scale(1.15);
+  background: white;
+  color: var(--color-primary);
+}
+
+/* PAGINATION DOTS (Option 1) */
+.card-pagination-dots {
+  position: absolute;
+  bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 5px;
-  background: rgba(7, 19, 79, 0.78);
-  backdrop-filter: blur(8px);
-  padding: 3px 8px;
+  background: rgba(7, 19, 79, 0.65);
+  backdrop-filter: blur(6px);
+  padding: 3px 7px;
   border-radius: var(--radius-full);
-  z-index: 10;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  z-index: 9;
 }
 
-.card-arrow-btn {
-  width: 24px;
-  height: 24px;
+.card-dot {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 0;
-  display: grid;
-  place-items: center;
+  background: rgba(255, 255, 255, 0.45);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
 
-.card-arrow-btn:hover {
+.card-dot.active {
+  width: 16px;
+  border-radius: 4px;
   background: white;
-  color: var(--color-night);
-  transform: scale(1.1);
-}
-
-.card-img-counter {
-  color: white;
-  font-size: 0.74rem;
-  font-weight: 800;
-  padding: 0 4px;
-  user-select: none;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
 }
 
 .product-body {

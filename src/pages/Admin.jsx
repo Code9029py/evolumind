@@ -1045,11 +1045,13 @@ export default function Admin() {
                       <span>Vista Previa en Vivo (Catálogo)</span>
                     </div>
 
-                    {/* TARJETA EXACTA DE CATÁLOGO CON CARRUSEL DE IMÁGENES */}
+                    {/* TARJETA EXACTA DE CATÁLOGO CON FLECHAS LATERALES Y PUNTOS */}
                     <div className="product-card preview-card">
                       <div
-                        className="product-art"
+                        className="product-art interactive-art"
                         style={{ '--accent': editingProduct.accent || '#0057d9' }}
+                        onClick={() => setFullDetailPreview(livePreviewProduct)}
+                        title="Clic para previsualizar modal completo"
                       >
                         {livePreviewProduct?.images && livePreviewProduct.images.length > 0 ? (
                           <img
@@ -1075,10 +1077,10 @@ export default function Admin() {
                         )}
 
                         {livePreviewProduct?.images && livePreviewProduct.images.length > 1 && (
-                          <div className="card-carousel-controls">
+                          <>
                             <button
                               type="button"
-                              className="card-arrow-btn left"
+                              className="card-side-arrow left"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setPreviewImgIndex((prev) =>
@@ -1089,12 +1091,9 @@ export default function Admin() {
                             >
                               <ChevronLeft size={16} />
                             </button>
-                            <span className="card-img-counter">
-                              {previewImgIndex + 1}/{livePreviewProduct.images.length}
-                            </span>
                             <button
                               type="button"
-                              className="card-arrow-btn right"
+                              className="card-side-arrow right"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setPreviewImgIndex((prev) =>
@@ -1105,7 +1104,20 @@ export default function Admin() {
                             >
                               <ChevronRight size={16} />
                             </button>
-                          </div>
+
+                            <div className="card-pagination-dots" onClick={(e) => e.stopPropagation()}>
+                              {livePreviewProduct.images.map((_, i) => (
+                                <span
+                                  key={i}
+                                  className={`card-dot ${previewImgIndex === i ? 'active' : ''}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPreviewImgIndex(i);
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </>
                         )}
 
                         <span
@@ -1127,7 +1139,7 @@ export default function Admin() {
                           </span>
                         </div>
 
-                        <h3 className="product-title">
+                        <h3 className="product-title" onClick={() => setFullDetailPreview(livePreviewProduct)} style={{ cursor: 'pointer' }}>
                           {livePreviewProduct?.title}
                         </h3>
                         <p className="product-desc">

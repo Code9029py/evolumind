@@ -24,6 +24,17 @@ export default function ProductCard({ product, onView }) {
     setCurrentImgIndex((prev) => (prev < imagesList.length - 1 ? prev + 1 : 0));
   };
 
+  const handleDotClick = (e, index) => {
+    e.stopPropagation();
+    setCurrentImgIndex(index);
+  };
+
+  const handleCardArtClick = () => {
+    if (onView) {
+      onView(product);
+    }
+  };
+
   const whatsappMessage = encodeURIComponent(
     `Hola EvoluMind, me interesa solicitar el *${product.title}* (${product.price}). ¿Podrían indicarme los pasos para el pago y la entrega del PDF?`
   );
@@ -31,7 +42,12 @@ export default function ProductCard({ product, onView }) {
 
   return (
     <article className="product-card">
-      <div className="product-art" style={{ '--accent': product.accent || '#0057d9' }}>
+      <div
+        className="product-art interactive-art"
+        style={{ '--accent': product.accent || '#0057d9' }}
+        onClick={handleCardArtClick}
+        title="Clic para ver detalle completo"
+      >
         {currentImage ? (
           <img src={currentImage} alt={product.title} className="product-cover-img" loading="lazy" />
         ) : (
@@ -46,29 +62,39 @@ export default function ProductCard({ product, onView }) {
           </div>
         )}
 
-        {/* CONTROLES DE IMAGEN ANTERIOR / SIGUIENTE SI TIENE MÁS DE 1 FOTO */}
+        {/* FLECHAS LATERALES Y PUNTOS DE PAGINACIÓN SI TIENE MÁS DE 1 FOTO */}
         {imagesList.length > 1 && (
-          <div className="card-carousel-controls">
+          <>
             <button
               type="button"
-              className="card-arrow-btn left"
+              className="card-side-arrow left"
               onClick={handlePrevImg}
-              aria-label="Imagen anterior"
+              aria-label="Foto anterior"
+              title="Anterior"
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="card-img-counter">
-              {currentImgIndex + 1}/{imagesList.length}
-            </span>
             <button
               type="button"
-              className="card-arrow-btn right"
+              className="card-side-arrow right"
               onClick={handleNextImg}
-              aria-label="Siguiente imagen"
+              aria-label="Siguiente foto"
+              title="Siguiente"
             >
               <ChevronRight size={16} />
             </button>
-          </div>
+
+            <div className="card-pagination-dots" onClick={(e) => e.stopPropagation()}>
+              {imagesList.map((_, i) => (
+                <span
+                  key={i}
+                  className={`card-dot ${currentImgIndex === i ? 'active' : ''}`}
+                  onClick={(e) => handleDotClick(e, i)}
+                  aria-label={`Ver foto ${i + 1}`}
+                />
+              ))}
+            </div>
+          </>
         )}
 
         <span className={`product-status-pill ${isAvailable ? 'available' : 'soon'}`}>
@@ -82,7 +108,9 @@ export default function ProductCard({ product, onView }) {
           <span className="product-pages">{product.pages || 'PDF Interactivo'}</span>
         </div>
 
-        <h3 className="product-title">{product.title}</h3>
+        <h3 className="product-title" onClick={handleCardArtClick} style={{ cursor: 'pointer' }}>
+          {product.title}
+        </h3>
         <p className="product-desc">{product.shortDescription}</p>
 
         <div className="product-footer">
