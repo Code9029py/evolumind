@@ -52,104 +52,106 @@ export default function ProductDetailDialog({ product, onClose }) {
           <X size={20} />
         </button>
 
-        <div className="dialog-top-grid">
-          <div className="dialog-left-col">
-            <div className="product-art dialog-art" style={{ '--accent': product.accent || '#0057d9' }}>
-              {currentImage ? (
-                <img src={currentImage} alt={product.title} className="product-cover-img" />
-              ) : (
-                <div className="product-book-visual dialog-book-visual">
-                  <div className="book-spine" />
-                  <div className="book-cover-content">
-                    <span className="book-tag">EvoluMind</span>
-                    <Sparkles size={32} className="book-icon" />
-                    <h3 className="book-cover-title">{product.theme}</h3>
-                    <small className="book-format-tag">PDF</small>
+        <div className="product-dialog-body">
+          <div className="dialog-top-grid">
+            <div className="dialog-left-col">
+              <div className="product-art dialog-art" style={{ '--accent': product.accent || '#0057d9' }}>
+                {currentImage ? (
+                  <img src={currentImage} alt={product.title} className="product-cover-img" />
+                ) : (
+                  <div className="product-book-visual dialog-book-visual">
+                    <div className="book-spine" />
+                    <div className="book-cover-content">
+                      <span className="book-tag">EvoluMind</span>
+                      <Sparkles size={32} className="book-icon" />
+                      <h3 className="book-cover-title">{product.theme}</h3>
+                      <small className="book-format-tag">PDF</small>
+                    </div>
                   </div>
+                )}
+              </div>
+
+              {imagesList.length > 1 && (
+                <div className="dialog-thumbnails-row">
+                  {imagesList.map((imgUrl, idx) => (
+                    <button
+                      key={imgUrl + idx}
+                      type="button"
+                      className={`dialog-thumb-btn ${selectedImgIndex === idx ? 'active' : ''}`}
+                      onClick={() => setSelectedImgIndex(idx)}
+                      aria-label={`Ver imagen ${idx + 1}`}
+                    >
+                      <img src={imgUrl} alt={`Vista ${idx + 1}`} />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="dialog-quick-specs">
+                <div className="spec-card">
+                  <small>Inversión</small>
+                  <strong>{product.price}</strong>
+                </div>
+                <div className="spec-card">
+                  <small>Formato</small>
+                  <strong>PDF Digital</strong>
+                </div>
+                <div className="spec-card">
+                  <small>Extensión</small>
+                  <strong>{product.pages || '40+ págs'}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="dialog-right-col">
+              <div className="dialog-header">
+                <span className="eyebrow">{product.category}</span>
+                <h2 id="product-dialog-title">{product.title}</h2>
+              </div>
+
+              <p className="dialog-description">{product.longDescription}</p>
+
+              {product.targetAudience && (
+                <div className="dialog-audience-box">
+                  <strong>¿Para quién es este cuadernillo?</strong>
+                  <p>{product.targetAudience}</p>
                 </div>
               )}
             </div>
+          </div>
 
-            {imagesList.length > 1 && (
-              <div className="dialog-thumbnails-row">
-                {imagesList.map((imgUrl, idx) => (
-                  <button
-                    key={imgUrl + idx}
-                    type="button"
-                    className={`dialog-thumb-btn ${selectedImgIndex === idx ? 'active' : ''}`}
-                    onClick={() => setSelectedImgIndex(idx)}
-                    aria-label={`Ver imagen ${idx + 1}`}
-                  >
-                    <img src={imgUrl} alt={`Vista ${idx + 1}`} />
-                  </button>
+          {product.modules && product.modules.length > 0 && (
+            <div className="dialog-modules-fullwidth">
+              <h4>
+                <BookCheck size={18} />
+                Estructura de Módulos y Actividades:
+              </h4>
+              <div className="modules-grid-2col">
+                {product.modules.map((moduleItem) => (
+                  <div className="module-grid-item" key={moduleItem}>
+                    <CheckCircle2 size={16} />
+                    <span>{moduleItem}</span>
+                  </div>
                 ))}
               </div>
-            )}
-
-            <div className="dialog-quick-specs">
-              <div className="spec-card">
-                <small>Inversión</small>
-                <strong>{product.price}</strong>
-              </div>
-              <div className="spec-card">
-                <small>Formato</small>
-                <strong>PDF Digital</strong>
-              </div>
-              <div className="spec-card">
-                <small>Extensión</small>
-                <strong>{product.pages || '40+ págs'}</strong>
-              </div>
             </div>
+          )}
+
+          <div className="dialog-actions-footer">
+            <a
+              className="button primary whatsapp-cta"
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <MessageCircle size={18} />
+              Solicitar por WhatsApp ({product.price})
+            </a>
+            <a className="button ghost" href={`/contacto?producto=${product.id}`} onClick={onClose}>
+              <Send size={18} />
+              Consultar por Formulario
+            </a>
           </div>
-
-          <div className="dialog-right-col">
-            <div className="dialog-header">
-              <span className="eyebrow">{product.category}</span>
-              <h2 id="product-dialog-title">{product.title}</h2>
-            </div>
-
-            <p className="dialog-description">{product.longDescription}</p>
-
-            {product.targetAudience && (
-              <div className="dialog-audience-box">
-                <strong>¿Para quién es este cuadernillo?</strong>
-                <p>{product.targetAudience}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {product.modules && product.modules.length > 0 && (
-          <div className="dialog-modules-fullwidth">
-            <h4>
-              <BookCheck size={18} />
-              Estructura de Módulos y Actividades:
-            </h4>
-            <div className="modules-grid-2col">
-              {product.modules.map((moduleItem) => (
-                <div className="module-grid-item" key={moduleItem}>
-                  <CheckCircle2 size={16} />
-                  <span>{moduleItem}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="dialog-actions-footer">
-          <a
-            className="button primary whatsapp-cta"
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <MessageCircle size={18} />
-            Solicitar por WhatsApp ({product.price})
-          </a>
-          <a className="button ghost" href={`/contacto?producto=${product.id}`} onClick={onClose}>
-            <Send size={18} />
-            Consultar por Formulario
-          </a>
         </div>
       </section>
     </div>
