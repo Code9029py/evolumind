@@ -1,21 +1,26 @@
 import { useEffect, useState } from 'react';
 import PageShell from './components/layout/PageShell.jsx';
+import Admin from './pages/Admin.jsx';
 import Catalog from './pages/Catalog.jsx';
 import Contact from './pages/Contact.jsx';
+import Faq from './pages/Faq.jsx';
 import Home from './pages/Home.jsx';
-import OptionOne from './pages/OptionOne.jsx';
-import OptionThree from './pages/OptionThree.jsx';
 
 const routes = {
   '/': Home,
   '/catalogo': Catalog,
   '/contacto': Contact,
-  '/opcion-1': OptionOne,
-  '/opcion-3': OptionThree,
+  '/faq': Faq,
+  '/preguntas-frecuentes': Faq,
+  '/admin': Admin,
 };
 
 function getCurrentPath() {
-  return window.location.pathname.replace(/\/$/, '') || '/';
+  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  if (path === '/opcion-1' || path === '/opcion-3') {
+    return '/';
+  }
+  return path;
 }
 
 export default function App() {
@@ -29,8 +34,12 @@ export default function App() {
     const handleClick = (event) => {
       const anchor = event.target.closest('a[href^="/"]');
       if (!anchor || anchor.target || event.metaKey || event.ctrlKey) return;
+
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+
       event.preventDefault();
-      window.history.pushState({}, '', anchor.getAttribute('href'));
+      window.history.pushState({}, '', href);
       handleNavigation();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };

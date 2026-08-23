@@ -1,22 +1,25 @@
-import { BrainCircuit, Menu } from 'lucide-react';
-import logo from '../../assets/logo/EvoluMind_logo.jpeg';
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Inicio' },
   { href: '/catalogo', label: 'Catálogo' },
   { href: '/contacto', label: 'Contacto' },
-  { href: '/opcion-1', label: 'Opción 1' },
-  { href: '/opcion-3', label: 'Opción 3' },
+  { href: '/faq', label: 'Preguntas Frecuentes' },
 ];
 
 export default function Navbar({ currentPath }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const closeMenu = () => setMobileOpen(false);
+
   return (
     <header className="navbar">
-      <a href="/" className="brand" aria-label="EvoluMind inicio">
-        <img src={logo} alt="EvoluMind" />
-        <span>EvoluMind</span>
+      <a href="/" className="brand" aria-label="EvoluMind inicio" onClick={closeMenu}>
+        <span className="brand-text">EvoluMind</span>
       </a>
-      <nav className="desktop-nav" aria-label="Principal">
+
+      <nav className="desktop-nav" aria-label="Navegación principal">
         {navItems.map((item) => (
           <a
             key={item.href}
@@ -27,22 +30,40 @@ export default function Navbar({ currentPath }) {
           </a>
         ))}
       </nav>
-      <a href="/catalogo" className="nav-action">
-        <BrainCircuit size={18} />
-        Explorar
-      </a>
-      <details className="mobile-menu">
-        <summary aria-label="Abrir navegación">
-          <Menu size={22} />
-        </summary>
-        <div>
-          {navItems.map((item) => (
-            <a key={item.href} href={item.href}>
-              {item.label}
-            </a>
-          ))}
+
+      <button
+        className="mobile-toggle"
+        type="button"
+        onClick={() => setMobileOpen(!mobileOpen)}
+        aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+      >
+        {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
+      {mobileOpen && (
+        <div className="mobile-overlay" onClick={closeMenu}>
+          <div className="mobile-dropdown" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-header">
+              <span className="brand-text">EvoluMind</span>
+              <button className="mobile-close-btn" type="button" onClick={closeMenu} aria-label="Cerrar">
+                <X size={20} />
+              </button>
+            </div>
+            <nav className="mobile-nav-links">
+              {navItems.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={currentPath === item.href ? 'active' : ''}
+                  onClick={closeMenu}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+          </div>
         </div>
-      </details>
+      )}
     </header>
   );
 }

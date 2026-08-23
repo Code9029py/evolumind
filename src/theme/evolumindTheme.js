@@ -16,21 +16,44 @@ export const theme = {
 };
 
 export const heroContent = {
-  badge: 'Bienestar digital',
-  title: 'EvoluMind - Evolución humana a un clic de distancia',
+  badge: 'Bienestar Digital',
+  title: 'EvoluMind',
+  subtitle: 'Evolución humana a un clic de distancia.',
   description:
-    'EvoluMind ofrece cuadernillos terapéuticos digitales, prácticos e interactivos, diseñados para acompañar el bienestar emocional desde cualquier dispositivo, de forma privada, accesible y a tu propio ritmo.',
-  slogan: 'Evolución humana a un clic de distancia.',
+    'Plataforma de cuadernillos terapéuticos digitales e interactivos, fundamentados en la psicología científica para acompañar el bienestar emocional de forma privada, accesible y a tu propio ritmo.',
+};
+
+export const academicInfo = {
+  institution: 'Universidad Iberoamericana (UNIBE)',
+  faculty: 'Carrera de Psicología',
+  location: 'Sede San Lorenzo, Paraguay',
+  team: [
+    { name: 'Smaia Hetzer', role: 'Dirección General y Coordinación' },
+    { name: 'Luz Melgarejo', role: 'Contenido Psicológico e Investigación' },
+    { name: 'Selma González', role: 'Diseño Editorial y Tecnología' },
+    { name: 'Mario Leiva', role: 'Marketing y Comunicación' },
+    { name: 'María Portillo', role: 'Administración y Finanzas' },
+  ],
+  ods: [
+    { code: 'ODS 3', title: 'Salud y Bienestar', desc: 'Herramientas de apoyo ante la ansiedad y el estrés.' },
+    { code: 'ODS 4', title: 'Educación de Calidad', desc: 'Psicología aplicada y aprendizaje emocional continuo.' },
+    { code: 'ODS 10', title: 'Reducción de Desigualdades', desc: 'Recursos terapéuticos accesibles para todos.' },
+  ],
 };
 
 export const coreContent = {
-  value:
-    'Herramientas digitales de bienestar emocional, diseñadas para acompañarte con ejercicios prácticos, privados y accesibles.',
+  value: 'Herramientas de bolsillo diseñadas para transformar el autoconocimiento en acciones diarias.',
   mission:
-    'Brindar herramientas digitales accesibles, prácticas y basadas en la psicología científica que promuevan el bienestar emocional, permitiendo a las personas trabajar en su salud mental de manera autónoma, privada y efectiva.',
+    'Brindar herramientas digitales accesibles y basadas en la psicología científica que promuevan el bienestar emocional, permitiendo a las personas trabajar en su salud mental de manera autónoma y privada.',
   vision:
-    'Convertirse en una plataforma líder en bienestar digital en Paraguay y Latinoamérica, reconocida por la calidad de sus recursos terapéuticos y su contribución a la democratización del acceso a la salud mental.',
-  steps: ['Elegí un cuadernillo.', 'Recibí el material digital.', 'Trabajá a tu ritmo.'],
+    'Ser una plataforma referente en bienestar digital, reconocida por la calidad de sus recursos terapéuticos y su contribución al acceso equitativo a la salud mental.',
+  steps: [
+    { step: 1, title: 'Descubrí tu punto de partida', desc: 'Identificá tus necesidades emocionales con claridad.' },
+    { step: 2, title: 'Elegí el área emocional que querés trabajar', desc: 'Explorá enfoques en ansiedad, estrés, autoestima, duelo o vínculos.' },
+    { step: 3, title: 'Accedé a tu cuadernillo digital', desc: 'Recibí tu PDF interactivo con ejercicios guiados y autorregistro.' },
+    { step: 4, title: 'Trabajá a tu ritmo', desc: 'Completá las dinámicas interactivas de forma 100% confidencial.' },
+    { step: 5, title: 'Seguimos evolucionando', desc: 'Consolidá nuevos hábitos y continuá tu crecimiento personal.' },
+  ],
   ethical:
-    'Los materiales de EvoluMind son recursos de bienestar y autoayuda. No sustituyen el diagnóstico, tratamiento ni acompañamiento de un profesional de la salud mental. En situaciones de crisis o malestar intenso, se recomienda acudir a un profesional calificado.',
+    'Los cuadernillos de EvoluMind son recursos psicoeducativos y de autoayuda técnica. No sustituyen el diagnóstico ni el tratamiento individual de un profesional de la salud mental titulado. En situaciones de crisis, se recomienda consultar a un especialista calificado.',
 };

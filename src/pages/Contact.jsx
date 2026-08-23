@@ -9,6 +9,10 @@ export default function Contact() {
 
   useEffect(() => {
     getContactChannels().then(setChannels);
+
+    const handleUpdate = () => getContactChannels().then(setChannels);
+    window.addEventListener('evolumind_contact_updated', handleUpdate);
+    return () => window.removeEventListener('evolumind_contact_updated', handleUpdate);
   }, []);
 
   return (

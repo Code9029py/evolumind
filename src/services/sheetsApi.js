@@ -1,26 +1,50 @@
-import { fallbackCatalog } from '../data/fallbackCatalog.js';
-import { fallbackContact } from '../data/fallbackContact.js';
+import { getStoredCatalog, saveStoredCatalog, getStoredContact, saveStoredContact } from './catalogStorage.js';
 
 const APPS_SCRIPT_URL = import.meta.env.VITE_EVOLUMIND_SHEETS_URL;
 
-async function fetchSheetResource(resource, fallback) {
-  if (!APPS_SCRIPT_URL) return fallback;
+export async function getCatalog() {
+  const localData = getStoredCatalog();
+
+  if (!APPS_SCRIPT_URL) {
+    return localData;
+  }
+
+  // Fetch in background (stale-while-revalidate)
+  try {
+    const response = await fetch(`${APPS_SCRIPT_URL}?resource=catalog`);
+    if (response.ok) {
+      const remoteData = await response.json();
+      if (Array.isArray(remoteData) && remoteData.length > 0) {
+        saveStoredCatalog(remoteData);
+        return remoteData;
+      }
+    }
+  } catch (error) {
+    console.warn('Sheets sync unavailable, using cached catalog.', error);
+  }
+
+  return localData;
+}
+
+export async function getContactChannels() {
+  const localData = getStoredContact();
+
+  if (!APPS_SCRIPT_URL) {
+    return localData;
+  }
 
   try {
-    const response = await fetch(`${APPS_SCRIPT_URL}?resource=${resource}`);
-    if (!response.ok) throw new Error(`Sheets request failed: ${response.status}`);
-    const data = await response.json();
-    return Array.isArray(data) ? data : fallback;
+    const response = await fetch(`${APPS_SCRIPT_URL}?resource=contact`);
+    if (response.ok) {
+      const remoteData = await response.json();
+      if (Array.isArray(remoteData) && remoteData.length > 0) {
+        saveStoredContact(remoteData);
+        return remoteData;
+      }
+    }
   } catch (error) {
-    console.warn(`Using local fallback for ${resource}.`, error);
-    return fallback;
+    console.warn('Sheets sync unavailable, using cached contact channels.', error);
   }
-}
 
-export function getCatalog() {
-  return fetchSheetResource('catalog', fallbackCatalog);
-}
-
-export function getContactChannels() {
-  return fetchSheetResource('contact', fallbackContact);
+  return localData;
 }

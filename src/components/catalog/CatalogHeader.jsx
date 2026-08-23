@@ -1,17 +1,18 @@
-import { SearchCheck } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
 export default function CatalogHeader() {
   return (
     <section className="page-hero catalog-hero">
-      <div>
-        <span className="badge">Catálogo digital</span>
-        <h1>Cuadernillos terapéuticos para distintas áreas emocionales.</h1>
+      <div className="page-hero-content">
+        <span className="badge">Catálogo Digital</span>
+        <h1>Cuadernillos terapéuticos interactivos</h1>
         <p>
-          Recursos en PDF interactivo, pensados para trabajar ansiedad, estrés, autoestima,
-          relaciones y duelo con ejercicios claros y privados.
+          Recursos de autoayuda técnica en PDF interactivo con campos rellenables para trabajar a tu propio ritmo.
         </p>
       </div>
-      <SearchCheck size={72} />
+      <div className="page-hero-icon-orb">
+        <BookOpen size={40} />
+      </div>
     </section>
   );
 }
