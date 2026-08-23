@@ -41,7 +41,7 @@ export const faqList = [
   {
     question: '¿Qué es exactamente un cuadernillo terapéutico digital?',
     answer:
-      'Es un archivo PDF interactivo de alta calidad diseñado por estudiantes de Psicología de la UNIBE. Contiene fundamentos teóricos explicados de forma clara, ejercicios guiados de autorregistro y dinámicas prácticas que puedes rellenar directamente desde tu celular, tablet o computadora (o imprimir si lo prefieres).',
+      'Es un archivo PDF interactivo de alta calidad diseñado por estudiantes de Psicología de la UNIBE. Contiene fundamentos teóricos explicados de forma clara, ejercicios guiados de autorregistro y dinámicas prácticas que puedes completar directamente desde tu celular, tablet o computadora (o imprimir si lo prefieres).',
   },
   {
     question: '¿Cómo recibo mi cuadernillo una vez realizado el pedido?',
@@ -56,7 +56,7 @@ export const faqList = [
   {
     question: '¿Puedo completar los ejercicios sin imprimir el material?',
     answer:
-      '¡Sí! Todos los cuadernillos de EvoluMind cuentan con campos de texto rellenables. Puedes escribir tus respuestas de forma confidencial desde cualquier lector de PDF en tu teléfono o PC, protegiendo tu privacidad.',
+      '¡Sí! Todos los cuadernillos de EvoluMind son interactivos. Puedes escribir tus respuestas de forma confidencial desde cualquier lector de PDF en tu teléfono o PC, protegiendo tu privacidad.',
   },
   {
     question: '¿Los cuadernillos reemplazan la terapia psicológica presencial?',
