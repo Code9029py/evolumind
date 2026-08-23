@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
-  ArrowLeftRight,
   BookCheck,
   Check,
   CheckCircle2,
@@ -22,7 +21,6 @@ import {
   Save,
   Settings,
   Sparkles,
-  Star,
   Trash2,
   User,
   X,
@@ -102,6 +100,7 @@ export default function Admin() {
 
   // Live full-screen detail preview modal
   const [fullDetailPreview, setFullDetailPreview] = useState(null);
+  const [previewImgIndex, setPreviewImgIndex] = useState(0);
 
   // Manage themes / categories modal
   const [managerModalType, setManagerModalType] = useState(null); // 'themes' | 'categories' | null
@@ -168,6 +167,7 @@ export default function Admin() {
     setIsCustomCategory(false);
     setCustomCategoryValue('');
     setNewImageUrl('');
+    setPreviewImgIndex(0);
 
     setEditingProduct({
       ...initialProductForm,
@@ -184,6 +184,7 @@ export default function Admin() {
     setIsCustomCategory(false);
     setCustomCategoryValue('');
     setNewImageUrl('');
+    setPreviewImgIndex(0);
 
     const imgList = Array.isArray(product.images) && product.images.length > 0
       ? product.images
@@ -206,7 +207,7 @@ export default function Admin() {
     showToast(`Cuadernillo marcado como "${nextStatus}"`);
   };
 
-  // Multiple Images Management: Add, Remove, Move Left, Move Right, Set as Cover
+  // Multiple Images Management: Add, Remove, Move Left, Move Right
   const handleAddImage = () => {
     if (!newImageUrl.trim()) return;
     const currentImages = editingProduct.images || [];
@@ -225,6 +226,9 @@ export default function Admin() {
       ...editingProduct,
       images: updated,
     });
+    if (previewImgIndex >= updated.length) {
+      setPreviewImgIndex(Math.max(0, updated.length - 1));
+    }
     showToast('Imagen eliminada');
   };
 
@@ -250,18 +254,6 @@ export default function Admin() {
       ...editingProduct,
       images: currentImages,
     });
-  };
-
-  const handleSetCover = (index) => {
-    if (index === 0) return;
-    const currentImages = [...(editingProduct.images || [])];
-    const [selected] = currentImages.splice(index, 1);
-    currentImages.unshift(selected);
-    setEditingProduct({
-      ...editingProduct,
-      images: currentImages,
-    });
-    showToast('Portada actualizada');
   };
 
   // Delete theme or category with confirmation
@@ -398,7 +390,11 @@ export default function Admin() {
       ? editingProduct.modulesText.split('\n').map((m) => m.trim()).filter(Boolean)
       : editingProduct.modules || [];
 
-    const firstImage = editingProduct.images && editingProduct.images.length > 0 ? editingProduct.images[0] : editingProduct.imageUrl;
+    const imgList = editingProduct.images && editingProduct.images.length > 0
+      ? editingProduct.images
+      : editingProduct.imageUrl
+      ? [editingProduct.imageUrl]
+      : [];
 
     return {
       ...editingProduct,
@@ -411,8 +407,8 @@ export default function Admin() {
       longDescription: editingProduct.longDescription || 'Explicación detallada del contenido del cuadernillo...',
       targetAudience: editingProduct.targetAudience || 'Público objetivo y recomendaciones...',
       modules: modulesList.length > 0 ? modulesList : ['Módulo 1: Introducción y fundamentos...', 'Módulo 2: Ejercicios prácticos...'],
-      images: editingProduct.images || [],
-      imageUrl: firstImage,
+      images: imgList,
+      imageUrl: imgList[0] || '',
     };
   }, [editingProduct, isCustomTheme, customThemeValue, isCustomCategory, customCategoryValue]);
 
@@ -903,7 +899,7 @@ export default function Admin() {
                     </div>
                   </label>
 
-                  {/* IMÁGENES MÚLTIPLES CON GESTOR AVANZADO (AGREGAR, REORDENAR, PORTADA Y BORRAR) */}
+                  {/* IMÁGENES MÚLTIPLES: AGREGAR, REORDENAR CON < y > Y ELIMINAR */}
                   <div className="admin-images-section">
                     <label className="form-field">
                       <span>Imágenes del Cuadernillo (JPG, WebP, PNG, SVG o URLs)</span>
@@ -936,26 +932,16 @@ export default function Admin() {
                                 {isCover ? '★ Portada' : `#${idx + 1}`}
                               </span>
 
-                              {/* Barra de acciones de imagen: mover izq, mover der, portada y borrar */}
+                              {/* Acciones directas y limpias: <, > y Eliminar */}
                               <div className="thumb-actions-overlay">
                                 {idx > 0 && (
                                   <button
                                     type="button"
                                     className="thumb-action-btn"
                                     onClick={() => handleMoveImageLeft(idx)}
-                                    title="Mover a la izquierda"
+                                    title="Mover hacia la izquierda"
                                   >
                                     <ChevronLeft size={13} />
-                                  </button>
-                                )}
-                                {!isCover && (
-                                  <button
-                                    type="button"
-                                    className="thumb-action-btn star-btn"
-                                    onClick={() => handleSetCover(idx)}
-                                    title="Hacer Portada Principal"
-                                  >
-                                    <Star size={12} />
                                   </button>
                                 )}
                                 {idx < editingProduct.images.length - 1 && (
@@ -963,7 +949,7 @@ export default function Admin() {
                                     type="button"
                                     className="thumb-action-btn"
                                     onClick={() => handleMoveImageRight(idx)}
-                                    title="Mover a la derecha"
+                                    title="Mover hacia la derecha"
                                   >
                                     <ChevronRight size={13} />
                                   </button>
@@ -1059,15 +1045,18 @@ export default function Admin() {
                       <span>Vista Previa en Vivo (Catálogo)</span>
                     </div>
 
-                    {/* TARJETA EXACTA DE CATÁLOGO */}
+                    {/* TARJETA EXACTA DE CATÁLOGO CON CARRUSEL DE IMÁGENES */}
                     <div className="product-card preview-card">
                       <div
                         className="product-art"
                         style={{ '--accent': editingProduct.accent || '#0057d9' }}
                       >
-                        {editingProduct.images && editingProduct.images.length > 0 ? (
+                        {livePreviewProduct?.images && livePreviewProduct.images.length > 0 ? (
                           <img
-                            src={editingProduct.images[0]}
+                            src={
+                              livePreviewProduct.images[previewImgIndex] ||
+                              livePreviewProduct.images[0]
+                            }
                             alt={livePreviewProduct?.title}
                             className="product-cover-img"
                           />
@@ -1084,6 +1073,41 @@ export default function Admin() {
                             </div>
                           </div>
                         )}
+
+                        {livePreviewProduct?.images && livePreviewProduct.images.length > 1 && (
+                          <div className="card-carousel-controls">
+                            <button
+                              type="button"
+                              className="card-arrow-btn left"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewImgIndex((prev) =>
+                                  prev > 0 ? prev - 1 : livePreviewProduct.images.length - 1
+                                );
+                              }}
+                              aria-label="Foto anterior"
+                            >
+                              <ChevronLeft size={16} />
+                            </button>
+                            <span className="card-img-counter">
+                              {previewImgIndex + 1}/{livePreviewProduct.images.length}
+                            </span>
+                            <button
+                              type="button"
+                              className="card-arrow-btn right"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewImgIndex((prev) =>
+                                  prev < livePreviewProduct.images.length - 1 ? prev + 1 : 0
+                                );
+                              }}
+                              aria-label="Foto siguiente"
+                            >
+                              <ChevronRight size={16} />
+                            </button>
+                          </div>
+                        )}
+
                         <span
                           className={`product-status-pill ${
                             editingProduct.status === 'disponible' ? 'available' : 'soon'

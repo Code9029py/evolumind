@@ -1024,6 +1024,51 @@ main {
   color: white;
 }
 
+/* CARD CAROUSEL CONTROLS */
+.card-carousel-controls {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(7, 19, 79, 0.78);
+  backdrop-filter: blur(8px);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.card-arrow-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.card-arrow-btn:hover {
+  background: white;
+  color: var(--color-night);
+  transform: scale(1.1);
+}
+
+.card-img-counter {
+  color: white;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 0 4px;
+  user-select: none;
+}
+
 .product-body {
   flex: 1;
   display: flex;
@@ -2391,15 +2436,6 @@ main {
   transform: scale(1.12);
   background: white;
   color: var(--color-primary);
-}
-
-.thumb-action-btn.star-btn {
-  color: #d97706;
-}
-
-.thumb-action-btn.star-btn:hover {
-  background: #fef3c7;
-  color: #b45309;
 }
 
 .thumb-action-btn.delete-btn {

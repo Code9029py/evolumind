@@ -1,8 +1,28 @@
-import { Eye, MessageCircle, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronLeft, ChevronRight, Eye, MessageCircle, Sparkles } from 'lucide-react';
 
 export default function ProductCard({ product, onView }) {
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const isAvailable = product.status === 'disponible';
-  const coverImage = (Array.isArray(product.images) && product.images[0]) || product.imageUrl;
+
+  const imagesList =
+    Array.isArray(product.images) && product.images.length > 0
+      ? product.images
+      : product.imageUrl
+      ? [product.imageUrl]
+      : [];
+
+  const currentImage = imagesList[currentImgIndex] || imagesList[0];
+
+  const handlePrevImg = (e) => {
+    e.stopPropagation();
+    setCurrentImgIndex((prev) => (prev > 0 ? prev - 1 : imagesList.length - 1));
+  };
+
+  const handleNextImg = (e) => {
+    e.stopPropagation();
+    setCurrentImgIndex((prev) => (prev < imagesList.length - 1 ? prev + 1 : 0));
+  };
 
   const whatsappMessage = encodeURIComponent(
     `Hola EvoluMind, me interesa solicitar el *${product.title}* (${product.price}). ¿Podrían indicarme los pasos para el pago y la entrega del PDF?`
@@ -12,8 +32,8 @@ export default function ProductCard({ product, onView }) {
   return (
     <article className="product-card">
       <div className="product-art" style={{ '--accent': product.accent || '#0057d9' }}>
-        {coverImage ? (
-          <img src={coverImage} alt={product.title} className="product-cover-img" loading="lazy" />
+        {currentImage ? (
+          <img src={currentImage} alt={product.title} className="product-cover-img" loading="lazy" />
         ) : (
           <div className="product-book-visual">
             <div className="book-spine" />
@@ -25,6 +45,32 @@ export default function ProductCard({ product, onView }) {
             </div>
           </div>
         )}
+
+        {/* CONTROLES DE IMAGEN ANTERIOR / SIGUIENTE SI TIENE MÁS DE 1 FOTO */}
+        {imagesList.length > 1 && (
+          <div className="card-carousel-controls">
+            <button
+              type="button"
+              className="card-arrow-btn left"
+              onClick={handlePrevImg}
+              aria-label="Imagen anterior"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <span className="card-img-counter">
+              {currentImgIndex + 1}/{imagesList.length}
+            </span>
+            <button
+              type="button"
+              className="card-arrow-btn right"
+              onClick={handleNextImg}
+              aria-label="Siguiente imagen"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
+
         <span className={`product-status-pill ${isAvailable ? 'available' : 'soon'}`}>
           {isAvailable ? 'Disponible' : 'Próximamente'}
         </span>
