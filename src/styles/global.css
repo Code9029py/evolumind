@@ -1140,6 +1140,11 @@ main {
   overflow-y: auto;
 }
 
+.dialog-backdrop.sub-modal-backdrop {
+  z-index: 120;
+  background: rgba(7, 19, 79, 0.65);
+}
+
 .product-dialog.wide-layout {
   position: relative;
   display: flex;
@@ -1351,7 +1356,7 @@ main {
 
 /* ==========================================================================
    CONTACT SECTION
-   ========================================================================= */
+   ========================================================================== */
 .contact-grid-section {
   padding: 1.2rem 0 0.8rem;
 }
@@ -1502,6 +1507,31 @@ main {
   color: var(--color-night);
   font-size: 0.84rem;
   font-weight: 800;
+}
+
+.field-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.manage-options-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: transparent;
+  border: 0;
+  color: var(--color-primary);
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.manage-options-btn:hover {
+  background: #eaf0ff;
 }
 
 .form-buttons-group {
@@ -2414,6 +2444,115 @@ main {
   font-size: 0.8rem;
   color: var(--color-muted);
   font-style: italic;
+}
+
+/* ==========================================================================
+   OPTIONS MANAGER MODAL & CONFIRMATION DIALOG
+   ========================================================================== */
+.options-manager-modal {
+  width: min(520px, 95vw);
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+  padding: 1.6rem;
+  animation: zoomInModal 0.2s ease-out;
+}
+
+.options-manager-body {
+  padding: 1rem 0;
+}
+
+.options-manager-hint {
+  font-size: 0.86rem;
+  color: var(--color-muted);
+  margin-bottom: 1.1rem;
+  line-height: 1.5;
+}
+
+.options-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.option-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-night);
+}
+
+.option-tag-delete-btn {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fee4e2;
+  color: #d92d20;
+  border: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.option-tag-delete-btn:hover {
+  transform: scale(1.15);
+  background: #fecdca;
+}
+
+.options-manager-footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+}
+
+/* SUB-MODAL CONFIRMATION */
+.confirm-delete-dialog {
+  width: min(400px, 90vw);
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.4);
+  padding: 1.8rem;
+  text-align: center;
+  animation: zoomInModal 0.18s ease-out;
+}
+
+.confirm-icon-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #fee4e2;
+  color: #d92d20;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 1rem;
+}
+
+.confirm-delete-dialog h4 {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--color-night);
+  margin-bottom: 0.4rem;
+}
+
+.confirm-delete-dialog p {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  margin-bottom: 1.4rem;
+  line-height: 1.5;
+}
+
+.confirm-buttons-row {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
 }
 
 /* ==========================================================================

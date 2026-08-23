@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import {
+  AlertTriangle,
   ArrowLeft,
   BookCheck,
   Check,
@@ -16,6 +17,7 @@ import {
   Plus,
   RotateCcw,
   Save,
+  Settings,
   Sparkles,
   Trash2,
   User,
@@ -25,6 +27,12 @@ import ProductDetailDialog from '../components/catalog/ProductDetailDialog.jsx';
 import {
   getStoredCatalog,
   saveStoredCatalog,
+  getStoredThemes,
+  saveStoredThemes,
+  getStoredCategories,
+  saveStoredCategories,
+  DEFAULT_THEMES,
+  DEFAULT_CATEGORIES,
 } from '../services/catalogStorage.js';
 
 const COLOR_PRESETS = [
@@ -34,15 +42,6 @@ const COLOR_PRESETS = [
   { name: 'Púrpura Profundo', value: '#061b8f' },
   { name: 'Coral Cálido', value: '#ff7a70' },
   { name: 'Ámbar Energético', value: '#d97706' },
-];
-
-const DEFAULT_THEMES = ['Ansiedad', 'Estrés', 'Autoestima', 'Duelo', 'Relaciones'];
-const DEFAULT_CATEGORIES = [
-  'Regulación Emocional',
-  'Hábitos y Autocuidado',
-  'Autoconocimiento',
-  'Acompañamiento Emocional',
-  'Vínculos y Comunicación',
 ];
 
 const initialProductForm = {
@@ -91,6 +90,9 @@ export default function Admin() {
   const [authError, setAuthError] = useState('');
 
   const [products, setProducts] = useState([]);
+  const [themes, setThemes] = useState([]);
+  const [categories, setCategories] = useState([]);
+
   const [editingProduct, setEditingProduct] = useState(null);
   const [isNew, setIsNew] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
@@ -98,6 +100,10 @@ export default function Admin() {
 
   // Live full-screen detail preview modal
   const [fullDetailPreview, setFullDetailPreview] = useState(null);
+
+  // Manage themes / categories modal
+  const [managerModalType, setManagerModalType] = useState(null); // 'themes' | 'categories' | null
+  const [itemToDeleteConfirm, setItemToDeleteConfirm] = useState(null); // { type, name } | null
 
   // Form custom selectors state
   const [isCustomTheme, setIsCustomTheme] = useState(false);
@@ -114,6 +120,8 @@ export default function Admin() {
       setAuthenticated(true);
     }
     setProducts(getStoredCatalog());
+    setThemes(getStoredThemes());
+    setCategories(getStoredCategories());
   }, []);
 
   const showToast = (msg) => {
@@ -128,23 +136,6 @@ export default function Admin() {
   const deletedProducts = useMemo(() => {
     return products.filter((p) => p.status === 'eliminado');
   }, [products]);
-
-  // Distinct themes & categories dynamically collected ONLY from active non-deleted products
-  const existingThemes = useMemo(() => {
-    const set = new Set(DEFAULT_THEMES);
-    activeProducts.forEach((p) => {
-      if (p.theme?.trim()) set.add(p.theme.trim());
-    });
-    return Array.from(set);
-  }, [activeProducts]);
-
-  const existingCategories = useMemo(() => {
-    const set = new Set(DEFAULT_CATEGORIES);
-    activeProducts.forEach((p) => {
-      if (p.category?.trim()) set.add(p.category.trim());
-    });
-    return Array.from(set);
-  }, [activeProducts]);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -179,8 +170,8 @@ export default function Admin() {
     setEditingProduct({
       ...initialProductForm,
       id: `cuadernillo-${Date.now()}`,
-      theme: existingThemes[0] || 'Ansiedad',
-      category: existingCategories[0] || 'Regulación Emocional',
+      theme: themes[0] || 'Ansiedad',
+      category: categories[0] || 'Regulación Emocional',
     });
   };
 
@@ -232,6 +223,32 @@ export default function Admin() {
     });
   };
 
+  // Delete theme or category with confirmation
+  const handleConfirmDeleteItem = () => {
+    if (!itemToDeleteConfirm) return;
+    const { type, name } = itemToDeleteConfirm;
+
+    if (type === 'themes') {
+      const updated = themes.filter((t) => t !== name);
+      setThemes(updated);
+      saveStoredThemes(updated);
+      if (editingProduct && editingProduct.theme === name) {
+        setEditingProduct({ ...editingProduct, theme: updated[0] || 'Ansiedad' });
+      }
+      showToast(`Tema "${name}" eliminado de la lista.`);
+    } else if (type === 'categories') {
+      const updated = categories.filter((c) => c !== name);
+      setCategories(updated);
+      saveStoredCategories(updated);
+      if (editingProduct && editingProduct.category === name) {
+        setEditingProduct({ ...editingProduct, category: updated[0] || 'Regulación Emocional' });
+      }
+      showToast(`Categoría "${name}" eliminada de la lista.`);
+    }
+
+    setItemToDeleteConfirm(null);
+  };
+
   const handleSaveProduct = (e) => {
     e.preventDefault();
     if (!editingProduct.title.trim()) {
@@ -239,13 +256,30 @@ export default function Admin() {
       return;
     }
 
-    const finalTheme = isCustomTheme ? customThemeValue.trim() : editingProduct.theme;
+    let finalTheme = isCustomTheme ? customThemeValue.trim() : editingProduct.theme;
     if (!finalTheme) {
       alert('Por favor especifica el Área / Tema del cuadernillo.');
       return;
     }
 
-    const finalCategory = isCustomCategory ? customCategoryValue.trim() : editingProduct.category;
+    // If custom theme was entered, persist it to themes list if not already present
+    if (isCustomTheme && finalTheme && !themes.includes(finalTheme)) {
+      const updatedThemes = [...themes, finalTheme];
+      setThemes(updatedThemes);
+      saveStoredThemes(updatedThemes);
+    }
+
+    let finalCategory = isCustomCategory ? customCategoryValue.trim() : editingProduct.category;
+    if (!finalCategory) {
+      finalCategory = 'Psicología y Bienestar';
+    }
+
+    // If custom category was entered, persist it to categories list if not already present
+    if (isCustomCategory && finalCategory && !categories.includes(finalCategory)) {
+      const updatedCats = [...categories, finalCategory];
+      setCategories(updatedCats);
+      saveStoredCategories(updatedCats);
+    }
 
     const modulesList = editingProduct.modulesText
       ? editingProduct.modulesText
@@ -264,7 +298,7 @@ export default function Admin() {
       ...editingProduct,
       title: editingProduct.title.trim(),
       theme: finalTheme,
-      category: finalCategory || 'Psicología y Bienestar',
+      category: finalCategory,
       price: formattedPrice,
       pages: formattedPages,
       modules: modulesList,
@@ -595,8 +629,19 @@ export default function Admin() {
                       />
                     </label>
 
-                    <label className="form-field">
-                      <span>Área / Tema Principal *</span>
+                    <div className="form-field">
+                      <div className="field-header-row">
+                        <span>Área / Tema Principal *</span>
+                        <button
+                          type="button"
+                          className="manage-options-btn"
+                          onClick={() => setManagerModalType('themes')}
+                        >
+                          <Settings size={12} />
+                          Gestionar Temas
+                        </button>
+                      </div>
+
                       {!isCustomTheme ? (
                         <select
                           value={editingProduct.theme}
@@ -609,7 +654,7 @@ export default function Admin() {
                             }
                           }}
                         >
-                          {existingThemes.map((t) => (
+                          {themes.map((t) => (
                             <option key={t} value={t}>
                               {t}
                             </option>
@@ -634,19 +679,30 @@ export default function Admin() {
                             className="cancel-custom-btn"
                             onClick={() => {
                               setIsCustomTheme(false);
-                              setEditingProduct({ ...editingProduct, theme: existingThemes[0] });
+                              setEditingProduct({ ...editingProduct, theme: themes[0] || 'Ansiedad' });
                             }}
                           >
                             Cancelar
                           </button>
                         </div>
                       )}
-                    </label>
+                    </div>
                   </div>
 
                   <div className="form-row">
-                    <label className="form-field">
-                      <span>Categoría</span>
+                    <div className="form-field">
+                      <div className="field-header-row">
+                        <span>Categoría</span>
+                        <button
+                          type="button"
+                          className="manage-options-btn"
+                          onClick={() => setManagerModalType('categories')}
+                        >
+                          <Settings size={12} />
+                          Gestionar Categorías
+                        </button>
+                      </div>
+
                       {!isCustomCategory ? (
                         <select
                           value={editingProduct.category}
@@ -659,7 +715,7 @@ export default function Admin() {
                             }
                           }}
                         >
-                          {existingCategories.map((c) => (
+                          {categories.map((c) => (
                             <option key={c} value={c}>
                               {c}
                             </option>
@@ -686,7 +742,7 @@ export default function Admin() {
                               setIsCustomCategory(false);
                               setEditingProduct({
                                 ...editingProduct,
-                                category: existingCategories[0],
+                                category: categories[0] || 'Regulación Emocional',
                               });
                             }}
                           >
@@ -694,7 +750,7 @@ export default function Admin() {
                           </button>
                         </div>
                       )}
-                    </label>
+                    </div>
 
                     <label className="form-field">
                       <span>Precio en Guaraníes</span>
@@ -1032,12 +1088,102 @@ export default function Admin() {
         </div>
       )}
 
-      {/* MODAL DETALLADO PREVIEW REAL (SI EL USUARIO APRIETA VER DETALLE DESDE EL EDITOR) */}
+      {/* MODAL DETALLADO PREVIEW REAL (PANTALLA COMPLETA) */}
       {fullDetailPreview && (
         <ProductDetailDialog
           product={fullDetailPreview}
           onClose={() => setFullDetailPreview(null)}
         />
+      )}
+
+      {/* MODAL PARA GESTIONAR Y ELIMINAR TEMAS O CATEGORÍAS CON CONFIRMACIÓN */}
+      {managerModalType && (
+        <div className="dialog-backdrop" onClick={() => setManagerModalType(null)}>
+          <div className="options-manager-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div className="modal-title-wrap">
+                <span className="badge">Configuración de Listas</span>
+                <h3>
+                  Gestionar {managerModalType === 'themes' ? 'Áreas / Temas' : 'Categorías'}
+                </h3>
+              </div>
+              <button
+                className="dialog-close"
+                type="button"
+                onClick={() => setManagerModalType(null)}
+                aria-label="Cerrar ventana"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="options-manager-body">
+              <p className="options-manager-hint">
+                Haz clic en la <strong>X</strong> de cualquier opción que desees borrar de la lista desplegable.
+              </p>
+
+              <div className="options-tags-wrap">
+                {(managerModalType === 'themes' ? themes : categories).map((item) => (
+                  <div className="option-tag-pill" key={item}>
+                    <span>{item}</span>
+                    <button
+                      type="button"
+                      className="option-tag-delete-btn"
+                      onClick={() =>
+                        setItemToDeleteConfirm({ type: managerModalType, name: item })
+                      }
+                      title={`Eliminar "${item}"`}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="options-manager-footer">
+              <button
+                type="button"
+                className="button primary small-btn"
+                onClick={() => setManagerModalType(null)}
+              >
+                Listo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMACIÓN DE BORRADO DE TEMA / CATEGORÍA */}
+      {itemToDeleteConfirm && (
+        <div className="dialog-backdrop sub-modal-backdrop" onClick={() => setItemToDeleteConfirm(null)}>
+          <div className="confirm-delete-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon-box">
+              <AlertTriangle size={28} />
+            </div>
+            <h4>¿Eliminar opción?</h4>
+            <p>
+              ¿Estás seguro de que deseas eliminar <strong>"{itemToDeleteConfirm.name}"</strong> de la lista de{' '}
+              {itemToDeleteConfirm.type === 'themes' ? 'temas' : 'categorías'}?
+            </p>
+            <div className="confirm-buttons-row">
+              <button
+                type="button"
+                className="button ghost small-btn"
+                onClick={() => setItemToDeleteConfirm(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="button danger-ghost small-btn"
+                onClick={handleConfirmDeleteItem}
+              >
+                Sí, Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
