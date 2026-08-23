@@ -1,7 +1,9 @@
-import { BookOpen, Eye, MessageCircle, Sparkles } from 'lucide-react';
+import { Eye, MessageCircle, Sparkles } from 'lucide-react';
 
 export default function ProductCard({ product, onView }) {
   const isAvailable = product.status === 'disponible';
+  const coverImage = (Array.isArray(product.images) && product.images[0]) || product.imageUrl;
+
   const whatsappMessage = encodeURIComponent(
     `Hola EvoluMind, me interesa solicitar el *${product.title}* (${product.price}). ¿Podrían indicarme los pasos para el pago y la entrega del PDF?`
   );
@@ -10,8 +12,8 @@ export default function ProductCard({ product, onView }) {
   return (
     <article className="product-card">
       <div className="product-art" style={{ '--accent': product.accent || '#0057d9' }}>
-        {product.imageUrl ? (
-          <img src={product.imageUrl} alt={product.title} className="product-cover-img" loading="lazy" />
+        {coverImage ? (
+          <img src={coverImage} alt={product.title} className="product-cover-img" loading="lazy" />
         ) : (
           <div className="product-book-visual">
             <div className="book-spine" />

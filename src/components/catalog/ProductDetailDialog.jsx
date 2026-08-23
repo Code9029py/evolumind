@@ -1,9 +1,12 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BookCheck, CheckCircle2, MessageCircle, Send, Sparkles, X } from 'lucide-react';
 
 export default function ProductDetailDialog({ product, onClose }) {
+  const [selectedImgIndex, setSelectedImgIndex] = useState(0);
+
   useEffect(() => {
     if (!product) return;
+    setSelectedImgIndex(0);
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -21,6 +24,15 @@ export default function ProductDetailDialog({ product, onClose }) {
   }, [product, onClose]);
 
   if (!product) return null;
+
+  const imagesList =
+    Array.isArray(product.images) && product.images.length > 0
+      ? product.images
+      : product.imageUrl
+      ? [product.imageUrl]
+      : [];
+
+  const currentImage = imagesList[selectedImgIndex] || imagesList[0];
 
   const whatsappMessage = encodeURIComponent(
     `Hola EvoluMind, quiero adquirir el *${product.title}* (${product.price}). ¿Podrían darme los datos para transferir y recibir el PDF interactivo?`
@@ -43,8 +55,8 @@ export default function ProductDetailDialog({ product, onClose }) {
         <div className="dialog-top-grid">
           <div className="dialog-left-col">
             <div className="product-art dialog-art" style={{ '--accent': product.accent || '#0057d9' }}>
-              {product.imageUrl ? (
-                <img src={product.imageUrl} alt={product.title} className="product-cover-img" />
+              {currentImage ? (
+                <img src={currentImage} alt={product.title} className="product-cover-img" />
               ) : (
                 <div className="product-book-visual dialog-book-visual">
                   <div className="book-spine" />
@@ -57,6 +69,22 @@ export default function ProductDetailDialog({ product, onClose }) {
                 </div>
               )}
             </div>
+
+            {imagesList.length > 1 && (
+              <div className="dialog-thumbnails-row">
+                {imagesList.map((imgUrl, idx) => (
+                  <button
+                    key={imgUrl + idx}
+                    type="button"
+                    className={`dialog-thumb-btn ${selectedImgIndex === idx ? 'active' : ''}`}
+                    onClick={() => setSelectedImgIndex(idx)}
+                    aria-label={`Ver imagen ${idx + 1}`}
+                  >
+                    <img src={imgUrl} alt={`Vista ${idx + 1}`} />
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="dialog-quick-specs">
               <div className="spec-card">
