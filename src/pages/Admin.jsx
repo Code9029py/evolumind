@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   ArrowLeft,
   BookCheck,
@@ -10,7 +10,9 @@ import {
   Image as ImageIcon,
   Lock,
   LogOut,
+  Maximize2,
   Palette,
+  Pipette,
   Plus,
   RotateCcw,
   Save,
@@ -19,6 +21,7 @@ import {
   User,
   X,
 } from 'lucide-react';
+import ProductDetailDialog from '../components/catalog/ProductDetailDialog.jsx';
 import {
   getStoredCatalog,
   saveStoredCatalog,
@@ -33,18 +36,27 @@ const COLOR_PRESETS = [
   { name: 'Ámbar Energético', value: '#d97706' },
 ];
 
+const DEFAULT_THEMES = ['Ansiedad', 'Estrés', 'Autoestima', 'Duelo', 'Relaciones'];
+const DEFAULT_CATEGORIES = [
+  'Regulación Emocional',
+  'Hábitos y Autocuidado',
+  'Autoconocimiento',
+  'Acompañamiento Emocional',
+  'Vínculos y Comunicación',
+];
+
 const initialProductForm = {
   id: '',
   title: '',
-  theme: '',
-  category: '',
+  theme: 'Ansiedad',
+  category: 'Regulación Emocional',
   shortDescription: '',
   longDescription: '',
   modules: [],
   modulesText: '',
   pages: '',
   targetAudience: '',
-  price: '50.000 Gs.',
+  price: '',
   status: 'disponible', // 'disponible' | 'oculto' | 'eliminado'
   format: 'PDF interactivo',
   featured: false,
@@ -53,7 +65,7 @@ const initialProductForm = {
   imageUrl: '',
 };
 
-// Helper: robust price formatter (extracts numbers, adds thousand dots, appends Gs.)
+// Helper: robust price sanitizer
 function sanitizePrice(rawPrice) {
   if (!rawPrice) return '';
   const digits = String(rawPrice).replace(/\D/g, '');
@@ -64,7 +76,7 @@ function sanitizePrice(rawPrice) {
   return `${formatted} Gs.`;
 }
 
-// Helper: robust pages formatter (extracts numbers, appends "páginas")
+// Helper: robust pages sanitizer
 function sanitizePages(rawPages) {
   if (!rawPages) return '';
   const digits = String(rawPages).replace(/\D/g, '');
@@ -84,12 +96,17 @@ export default function Admin() {
   const [showTrash, setShowTrash] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
+  // Live full-screen detail preview modal
+  const [fullDetailPreview, setFullDetailPreview] = useState(null);
+
   // Form custom selectors state
   const [isCustomTheme, setIsCustomTheme] = useState(false);
   const [customThemeValue, setCustomThemeValue] = useState('');
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [customCategoryValue, setCustomCategoryValue] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
+
+  const colorInputRef = useRef(null);
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('evolumind_admin_auth');
@@ -104,28 +121,30 @@ export default function Admin() {
     setTimeout(() => setToastMessage(''), 3200);
   };
 
-  // Distinct themes & categories dynamically collected
-  const existingThemes = useMemo(() => {
-    const set = new Set(
-      products.map((p) => p.theme?.trim()).filter(Boolean)
-    );
-    ['Ansiedad', 'Estrés', 'Autoestima', 'Duelo', 'Relaciones'].forEach((t) => set.add(t));
-    return Array.from(set);
+  const activeProducts = useMemo(() => {
+    return products.filter((p) => p.status !== 'eliminado');
   }, [products]);
 
-  const existingCategories = useMemo(() => {
-    const set = new Set(
-      products.map((p) => p.category?.trim()).filter(Boolean)
-    );
-    [
-      'Regulación Emocional',
-      'Hábitos y Autocuidado',
-      'Autoconocimiento',
-      'Acompañamiento Emocional',
-      'Vínculos y Comunicación',
-    ].forEach((c) => set.add(c));
-    return Array.from(set);
+  const deletedProducts = useMemo(() => {
+    return products.filter((p) => p.status === 'eliminado');
   }, [products]);
+
+  // Distinct themes & categories dynamically collected ONLY from active non-deleted products
+  const existingThemes = useMemo(() => {
+    const set = new Set(DEFAULT_THEMES);
+    activeProducts.forEach((p) => {
+      if (p.theme?.trim()) set.add(p.theme.trim());
+    });
+    return Array.from(set);
+  }, [activeProducts]);
+
+  const existingCategories = useMemo(() => {
+    const set = new Set(DEFAULT_CATEGORIES);
+    activeProducts.forEach((p) => {
+      if (p.category?.trim()) set.add(p.category.trim());
+    });
+    return Array.from(set);
+  }, [activeProducts]);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -295,8 +314,29 @@ export default function Admin() {
     }
   };
 
-  const activeProducts = products.filter((p) => p.status !== 'eliminado');
-  const deletedProducts = products.filter((p) => p.status === 'eliminado');
+  // Build live preview object from form state
+  const livePreviewProduct = useMemo(() => {
+    if (!editingProduct) return null;
+    const finalTheme = isCustomTheme && customThemeValue.trim() ? customThemeValue.trim() : editingProduct.theme;
+    const finalCat = isCustomCategory && customCategoryValue.trim() ? customCategoryValue.trim() : editingProduct.category;
+    const modulesList = editingProduct.modulesText
+      ? editingProduct.modulesText.split('\n').map((m) => m.trim()).filter(Boolean)
+      : editingProduct.modules || [];
+
+    return {
+      ...editingProduct,
+      title: editingProduct.title || 'Título del Cuadernillo',
+      theme: finalTheme || 'Tema Principal',
+      category: finalCat || 'Categoría',
+      price: editingProduct.price ? sanitizePrice(editingProduct.price) || editingProduct.price : '50.000 Gs.',
+      pages: editingProduct.pages ? sanitizePages(editingProduct.pages) || editingProduct.pages : '40 páginas',
+      shortDescription: editingProduct.shortDescription || 'Resumen breve para la tarjeta de catálogo...',
+      longDescription: editingProduct.longDescription || 'Explicación detallada del contenido del cuadernillo...',
+      targetAudience: editingProduct.targetAudience || 'Público objetivo y recomendaciones...',
+      modules: modulesList.length > 0 ? modulesList : ['Módulo 1: Introducción y fundamentos...', 'Módulo 2: Ejercicios prácticos...'],
+      imageUrl: editingProduct.images && editingProduct.images.length > 0 ? editingProduct.images[0] : editingProduct.imageUrl,
+    };
+  }, [editingProduct, isCustomTheme, customThemeValue, isCustomCategory, customCategoryValue]);
 
   if (!authenticated) {
     return (
@@ -400,15 +440,9 @@ export default function Admin() {
 
       {showTrash ? (
         <div className="admin-card-container">
-          <div className="admin-section-header-bar">
-            <div>
-              <h3>Papelera de Cuadernillos ({deletedProducts.length})</h3>
-              <p>Los libros aquí están dados de baja y no son visibles para los clientes.</p>
-            </div>
-            <button className="button ghost small-btn" type="button" onClick={() => setShowTrash(false)}>
-              <ArrowLeft size={14} />
-              Volver al Catálogo Activo
-            </button>
+          <div className="admin-section-header">
+            <h3>Papelera de Cuadernillos ({deletedProducts.length})</h3>
+            <p>Los libros aquí están dados de baja y no son visibles para los clientes.</p>
           </div>
 
           {deletedProducts.length === 0 ? (
@@ -524,7 +558,7 @@ export default function Admin() {
         </div>
       )}
 
-      {/* MODAL DE EDICIÓN / CREACIÓN A ANCHO COMPLETO CON VISTA PREVIA EN VIVO */}
+      {/* MODAL DE EDICIÓN / CREACIÓN A ANCHO COMPLETO CON BORDES REDONDEADOS Y VISTA PREVIA */}
       {editingProduct && (
         <div className="dialog-backdrop" onClick={() => setEditingProduct(null)}>
           <div className="admin-modal-wide" onClick={(e) => e.stopPropagation()}>
@@ -543,431 +577,467 @@ export default function Admin() {
               </button>
             </div>
 
-            <div className="admin-modal-layout-grid">
-              {/* COLUMNA IZQUIERDA: FORMULARIO */}
-              <form onSubmit={handleSaveProduct} className="admin-form-col">
-                <div className="form-row">
-                  <label className="form-field">
-                    <span>Título del Cuadernillo *</span>
-                    <input
-                      type="text"
-                      value={editingProduct.title}
-                      onChange={(e) =>
-                        setEditingProduct({ ...editingProduct, title: e.target.value })
-                      }
-                      placeholder="Ej. Cuadernillo de Ansiedad"
-                      required
-                    />
-                  </label>
-
-                  <label className="form-field">
-                    <span>Área / Tema Principal *</span>
-                    {!isCustomTheme ? (
-                      <select
-                        value={editingProduct.theme}
-                        onChange={(e) => {
-                          if (e.target.value === '__custom__') {
-                            setIsCustomTheme(true);
-                            setCustomThemeValue('');
-                          } else {
-                            setEditingProduct({ ...editingProduct, theme: e.target.value });
-                          }
-                        }}
-                      >
-                        {existingThemes.map((t) => (
-                          <option key={t} value={t}>
-                            {t}
-                          </option>
-                        ))}
-                        <option value="__custom__">+ Crear nuevo tema...</option>
-                      </select>
-                    ) : (
-                      <div className="custom-input-with-cancel">
-                        <input
-                          type="text"
-                          placeholder="Escribe el nuevo tema..."
-                          value={customThemeValue}
-                          onChange={(e) => {
-                            setCustomThemeValue(e.target.value);
-                            setEditingProduct({ ...editingProduct, theme: e.target.value });
-                          }}
-                          autoFocus
-                          required
-                        />
-                        <button
-                          type="button"
-                          className="cancel-custom-btn"
-                          onClick={() => {
-                            setIsCustomTheme(false);
-                            setEditingProduct({ ...editingProduct, theme: existingThemes[0] });
-                          }}
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    )}
-                  </label>
-                </div>
-
-                <div className="form-row">
-                  <label className="form-field">
-                    <span>Categoría</span>
-                    {!isCustomCategory ? (
-                      <select
-                        value={editingProduct.category}
-                        onChange={(e) => {
-                          if (e.target.value === '__custom__') {
-                            setIsCustomCategory(true);
-                            setCustomCategoryValue('');
-                          } else {
-                            setEditingProduct({ ...editingProduct, category: e.target.value });
-                          }
-                        }}
-                      >
-                        {existingCategories.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                        <option value="__custom__">+ Crear nueva categoría...</option>
-                      </select>
-                    ) : (
-                      <div className="custom-input-with-cancel">
-                        <input
-                          type="text"
-                          placeholder="Escribe la nueva categoría..."
-                          value={customCategoryValue}
-                          onChange={(e) => {
-                            setCustomCategoryValue(e.target.value);
-                            setEditingProduct({ ...editingProduct, category: e.target.value });
-                          }}
-                          autoFocus
-                          required
-                        />
-                        <button
-                          type="button"
-                          className="cancel-custom-btn"
-                          onClick={() => {
-                            setIsCustomCategory(false);
-                            setEditingProduct({
-                              ...editingProduct,
-                              category: existingCategories[0],
-                            });
-                          }}
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    )}
-                  </label>
-
-                  <label className="form-field">
-                    <span>Precio en Guaraníes</span>
-                    <input
-                      type="text"
-                      value={editingProduct.price}
-                      onChange={(e) => {
-                        setEditingProduct({ ...editingProduct, price: e.target.value });
-                      }}
-                      onBlur={(e) => {
-                        const formatted = sanitizePrice(e.target.value);
-                        if (formatted) {
-                          setEditingProduct({ ...editingProduct, price: formatted });
-                        }
-                      }}
-                      placeholder="Ej. 50.000 Gs."
-                    />
-                  </label>
-                </div>
-
-                <div className="form-row">
-                  <label className="form-field">
-                    <span>Extensión (Páginas)</span>
-                    <input
-                      type="text"
-                      value={editingProduct.pages || ''}
-                      onChange={(e) =>
-                        setEditingProduct({ ...editingProduct, pages: e.target.value })
-                      }
-                      onBlur={(e) => {
-                        const formatted = sanitizePages(e.target.value);
-                        if (formatted) {
-                          setEditingProduct({ ...editingProduct, pages: formatted });
-                        }
-                      }}
-                      placeholder="Ej. 46 páginas"
-                    />
-                  </label>
-
-                  <label className="form-field">
-                    <span>Estado en Catálogo</span>
-                    <select
-                      value={editingProduct.status}
-                      onChange={(e) =>
-                        setEditingProduct({ ...editingProduct, status: e.target.value })
-                      }
-                    >
-                      <option value="disponible">Disponible (Visible en la tienda)</option>
-                      <option value="oculto">Oculto (Solo visible en administrador)</option>
-                    </select>
-                  </label>
-                </div>
-
-                {/* COLOR DE PORTADA CON PALETA Y SELECTOR */}
-                <div className="color-picker-box">
-                  <div className="color-picker-label">
-                    <Palette size={16} />
-                    <span>Color de Portada / Tarjeta</span>
-                  </div>
-                  <div className="color-swatches-row">
-                    {COLOR_PRESETS.map((preset) => (
-                      <button
-                        key={preset.value}
-                        type="button"
-                        className={`color-swatch-btn ${
-                          editingProduct.accent === preset.value ? 'active-swatch' : ''
-                        }`}
-                        style={{ backgroundColor: preset.value }}
-                        onClick={() => setEditingProduct({ ...editingProduct, accent: preset.value })}
-                        title={preset.name}
-                      >
-                        {editingProduct.accent === preset.value && <Check size={14} color="#fff" />}
-                      </button>
-                    ))}
-                    <div className="custom-color-input-wrap" title="Elegir color personalizado">
+            <div className="admin-modal-body">
+              <div className="admin-modal-layout-grid">
+                {/* COLUMNA IZQUIERDA: FORMULARIO */}
+                <form onSubmit={handleSaveProduct} className="admin-form-col">
+                  <div className="form-row">
+                    <label className="form-field">
+                      <span>Título del Cuadernillo *</span>
                       <input
-                        type="color"
-                        value={editingProduct.accent || '#0057d9'}
+                        type="text"
+                        value={editingProduct.title}
                         onChange={(e) =>
-                          setEditingProduct({ ...editingProduct, accent: e.target.value })
+                          setEditingProduct({ ...editingProduct, title: e.target.value })
                         }
-                        className="color-wheel-input"
+                        placeholder="Ej. Cuadernillo de Ansiedad"
+                        required
                       />
-                    </div>
-                  </div>
-                </div>
+                    </label>
 
-                {/* DESTACADO CHECKBOX */}
-                <label className="admin-checkbox-card">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(editingProduct.featured)}
-                    onChange={(e) =>
-                      setEditingProduct({ ...editingProduct, featured: e.target.checked })
-                    }
-                  />
-                  <div>
-                    <strong>Marcar como Destacado</strong>
-                    <small>Se priorizará en la parte superior del catálogo público</small>
-                  </div>
-                </label>
-
-                {/* IMÁGENES MÚLTIPLES */}
-                <div className="admin-images-section">
-                  <label className="form-field">
-                    <span>Imágenes del Cuadernillo (URLs)</span>
-                    <div className="add-image-bar">
-                      <input
-                        type="url"
-                        placeholder="https://ejemplo.com/portada.jpg"
-                        value={newImageUrl}
-                        onChange={(e) => setNewImageUrl(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        className="button secondary small-btn"
-                        onClick={handleAddImage}
-                      >
-                        <Plus size={15} />
-                        Agregar Foto
-                      </button>
-                    </div>
-                  </label>
-
-                  {editingProduct.images && editingProduct.images.length > 0 ? (
-                    <div className="images-thumbs-grid">
-                      {editingProduct.images.map((url, idx) => (
-                        <div className="thumb-item" key={url + idx}>
-                          <img src={url} alt={`Foto ${idx + 1}`} />
-                          <span className="thumb-index-tag">{idx === 0 ? 'Portada' : `#${idx + 1}`}</span>
+                    <label className="form-field">
+                      <span>Área / Tema Principal *</span>
+                      {!isCustomTheme ? (
+                        <select
+                          value={editingProduct.theme}
+                          onChange={(e) => {
+                            if (e.target.value === '__custom__') {
+                              setIsCustomTheme(true);
+                              setCustomThemeValue('');
+                            } else {
+                              setEditingProduct({ ...editingProduct, theme: e.target.value });
+                            }
+                          }}
+                        >
+                          {existingThemes.map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                          <option value="__custom__">+ Crear nuevo tema...</option>
+                        </select>
+                      ) : (
+                        <div className="custom-input-with-cancel">
+                          <input
+                            type="text"
+                            placeholder="Escribe el nuevo tema..."
+                            value={customThemeValue}
+                            onChange={(e) => {
+                              setCustomThemeValue(e.target.value);
+                              setEditingProduct({ ...editingProduct, theme: e.target.value });
+                            }}
+                            autoFocus
+                            required
+                          />
                           <button
                             type="button"
-                            className="remove-thumb-btn"
-                            onClick={() => handleRemoveImage(idx)}
-                            title="Eliminar foto"
+                            className="cancel-custom-btn"
+                            onClick={() => {
+                              setIsCustomTheme(false);
+                              setEditingProduct({ ...editingProduct, theme: existingThemes[0] });
+                            }}
                           >
-                            <Trash2 size={13} />
+                            Cancelar
                           </button>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="no-images-help">
-                      <ImageIcon size={14} /> Si no agregas imágenes, se generará automáticamente la portada vectorial con el color seleccionado.
-                    </p>
-                  )}
-                </div>
-
-                <label className="form-field">
-                  <span>Descripción Corta (Tarjeta del Catálogo)</span>
-                  <textarea
-                    rows={2}
-                    value={editingProduct.shortDescription || ''}
-                    onChange={(e) =>
-                      setEditingProduct({ ...editingProduct, shortDescription: e.target.value })
-                    }
-                    placeholder="Resumen conciso para la tarjeta del catálogo..."
-                  />
-                </label>
-
-                <label className="form-field">
-                  <span>Descripción Larga (Detalle del Modal)</span>
-                  <textarea
-                    rows={3}
-                    value={editingProduct.longDescription || ''}
-                    onChange={(e) =>
-                      setEditingProduct({ ...editingProduct, longDescription: e.target.value })
-                    }
-                    placeholder="Explicación detallada del contenido del cuadernillo..."
-                  />
-                </label>
-
-                <label className="form-field">
-                  <span>Público Objetivo</span>
-                  <input
-                    type="text"
-                    value={editingProduct.targetAudience || ''}
-                    onChange={(e) =>
-                      setEditingProduct({ ...editingProduct, targetAudience: e.target.value })
-                    }
-                    placeholder="Ej. Personas que desean mejorar su regulación emocional..."
-                  />
-                </label>
-
-                <label className="form-field">
-                  <span>Estructura de Módulos y Actividades (Uno por línea)</span>
-                  <textarea
-                    rows={4}
-                    value={editingProduct.modulesText || ''}
-                    onChange={(e) =>
-                      setEditingProduct({ ...editingProduct, modulesText: e.target.value })
-                    }
-                    placeholder="Módulo 1: Psicoeducación y autorregistro...&#10;Módulo 2: Herramientas prácticas...&#10;Módulo 3: Plan de acción..."
-                  />
-                </label>
-
-                <div className="admin-form-sticky-footer">
-                  <button className="button primary" type="submit">
-                    <Save size={18} />
-                    Guardar Cuadernillo
-                  </button>
-                  <button
-                    className="button ghost"
-                    type="button"
-                    onClick={() => setEditingProduct(null)}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-
-              {/* COLUMNA DERECHA: VISTA PREVIA EN VIVO (LIVE PREVIEW) */}
-              <div className="admin-preview-col">
-                <div className="preview-sticky-box">
-                  <div className="preview-header">
-                    <Sparkles size={16} />
-                    <span>Vista Previa en el Catálogo</span>
+                      )}
+                    </label>
                   </div>
 
-                  {/* MINI TARJETA EXACTA DE CATÁLOGO */}
-                  <div className="product-card preview-card">
-                    <div
-                      className="product-art"
-                      style={{ '--accent': editingProduct.accent || '#0057d9' }}
-                    >
-                      {editingProduct.images && editingProduct.images.length > 0 ? (
-                        <img
-                          src={editingProduct.images[0]}
-                          alt={editingProduct.title || 'Previsualización'}
-                          className="product-cover-img"
-                        />
+                  <div className="form-row">
+                    <label className="form-field">
+                      <span>Categoría</span>
+                      {!isCustomCategory ? (
+                        <select
+                          value={editingProduct.category}
+                          onChange={(e) => {
+                            if (e.target.value === '__custom__') {
+                              setIsCustomCategory(true);
+                              setCustomCategoryValue('');
+                            } else {
+                              setEditingProduct({ ...editingProduct, category: e.target.value });
+                            }
+                          }}
+                        >
+                          {existingCategories.map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
+                          <option value="__custom__">+ Crear nueva categoría...</option>
+                        </select>
                       ) : (
-                        <div className="product-book-visual">
-                          <div className="book-spine" />
-                          <div className="book-cover-content">
-                            <span className="book-tag">EvoluMind</span>
-                            <Sparkles size={24} className="book-icon" />
-                            <h4 className="book-cover-title">
-                              {editingProduct.theme || 'Tema'}
-                            </h4>
-                            <small className="book-format-tag">PDF</small>
-                          </div>
+                        <div className="custom-input-with-cancel">
+                          <input
+                            type="text"
+                            placeholder="Escribe la nueva categoría..."
+                            value={customCategoryValue}
+                            onChange={(e) => {
+                              setCustomCategoryValue(e.target.value);
+                              setEditingProduct({ ...editingProduct, category: e.target.value });
+                            }}
+                            autoFocus
+                            required
+                          />
+                          <button
+                            type="button"
+                            className="cancel-custom-btn"
+                            onClick={() => {
+                              setIsCustomCategory(false);
+                              setEditingProduct({
+                                ...editingProduct,
+                                category: existingCategories[0],
+                              });
+                            }}
+                          >
+                            Cancelar
+                          </button>
                         </div>
                       )}
-                      <span
-                        className={`product-status-pill ${
-                          editingProduct.status === 'disponible' ? 'available' : 'soon'
-                        }`}
+                    </label>
+
+                    <label className="form-field">
+                      <span>Precio en Guaraníes</span>
+                      <input
+                        type="text"
+                        value={editingProduct.price}
+                        onChange={(e) => {
+                          setEditingProduct({ ...editingProduct, price: e.target.value });
+                        }}
+                        onBlur={(e) => {
+                          const formatted = sanitizePrice(e.target.value);
+                          setEditingProduct({ ...editingProduct, price: formatted });
+                        }}
+                        placeholder="Ej. 50.000 Gs."
+                      />
+                    </label>
+                  </div>
+
+                  <div className="form-row">
+                    <label className="form-field">
+                      <span>Extensión (Páginas)</span>
+                      <input
+                        type="text"
+                        value={editingProduct.pages || ''}
+                        onChange={(e) =>
+                          setEditingProduct({ ...editingProduct, pages: e.target.value })
+                        }
+                        onBlur={(e) => {
+                          const formatted = sanitizePages(e.target.value);
+                          setEditingProduct({ ...editingProduct, pages: formatted });
+                        }}
+                        placeholder="Ej. 46 páginas"
+                      />
+                    </label>
+
+                    <label className="form-field">
+                      <span>Estado en Catálogo</span>
+                      <select
+                        value={editingProduct.status}
+                        onChange={(e) =>
+                          setEditingProduct({ ...editingProduct, status: e.target.value })
+                        }
                       >
-                        {editingProduct.status === 'disponible' ? 'Disponible' : 'Oculto'}
-                      </span>
+                        <option value="disponible">Disponible (Visible en la tienda)</option>
+                        <option value="oculto">Oculto (Solo visible en administrador)</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  {/* COLOR DE PORTADA CON PALETA Y BOTÓN PERSONALIZADO ELEGANTE */}
+                  <div className="color-picker-box">
+                    <div className="color-picker-label">
+                      <Palette size={16} />
+                      <span>Color de Portada / Tarjeta</span>
                     </div>
+                    <div className="color-swatches-row">
+                      {COLOR_PRESETS.map((preset) => (
+                        <button
+                          key={preset.value}
+                          type="button"
+                          className={`color-swatch-btn ${
+                            editingProduct.accent === preset.value ? 'active-swatch' : ''
+                          }`}
+                          style={{ backgroundColor: preset.value }}
+                          onClick={() => setEditingProduct({ ...editingProduct, accent: preset.value })}
+                          title={preset.name}
+                        >
+                          {editingProduct.accent === preset.value && <Check size={14} color="#fff" />}
+                        </button>
+                      ))}
 
-                    <div className="product-body">
-                      <div className="product-meta">
-                        <span className="product-category">
-                          {editingProduct.category || 'Categoría'}
-                        </span>
-                        <span className="product-pages">
-                          {editingProduct.pages || '40 páginas'}
-                        </span>
-                      </div>
-
-                      <h3 className="product-title">
-                        {editingProduct.title || 'Título del Cuadernillo'}
-                      </h3>
-                      <p className="product-desc">
-                        {editingProduct.shortDescription ||
-                          'Aquí aparecerá el resumen breve para la tarjeta de catálogo...'}
-                      </p>
-
-                      <div className="product-footer">
-                        <div className="product-price-box">
-                          <span className="price-label">Inversión</span>
-                          <strong className="product-price">
-                            {editingProduct.price || '50.000 Gs.'}
-                          </strong>
-                        </div>
-                        <span className="product-format-badge">100% Digital</span>
-                      </div>
+                      {/* Botón de color personalizado con degradado visual */}
+                      <button
+                        type="button"
+                        className="custom-color-picker-btn"
+                        onClick={() => colorInputRef.current?.click()}
+                        title="Seleccionar color personalizado..."
+                      >
+                        <Pipette size={14} />
+                        <span>Personalizado</span>
+                        <input
+                          ref={colorInputRef}
+                          type="color"
+                          value={editingProduct.accent || '#0057d9'}
+                          onChange={(e) =>
+                            setEditingProduct({ ...editingProduct, accent: e.target.value })
+                          }
+                          className="hidden-color-input"
+                        />
+                      </button>
                     </div>
                   </div>
 
-                  {/* VISTA RÁPIDA DE MÓDULOS */}
-                  <div className="preview-modules-box">
-                    <strong>
-                      <BookCheck size={15} /> Módulos Registrados:
-                    </strong>
-                    {editingProduct.modulesText ? (
-                      <ul>
-                        {editingProduct.modulesText
-                          .split('\n')
-                          .filter(Boolean)
-                          .map((mod, i) => (
+                  {/* DESTACADO CHECKBOX */}
+                  <label className="admin-checkbox-card">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(editingProduct.featured)}
+                      onChange={(e) =>
+                        setEditingProduct({ ...editingProduct, featured: e.target.checked })
+                      }
+                    />
+                    <div>
+                      <strong>Marcar como Destacado</strong>
+                      <small>Se priorizará en la parte superior del catálogo público</small>
+                    </div>
+                  </label>
+
+                  {/* IMÁGENES MÚLTIPLES */}
+                  <div className="admin-images-section">
+                    <label className="form-field">
+                      <span>Imágenes del Cuadernillo (URLs)</span>
+                      <div className="add-image-bar">
+                        <input
+                          type="url"
+                          placeholder="https://ejemplo.com/portada.jpg"
+                          value={newImageUrl}
+                          onChange={(e) => setNewImageUrl(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="button secondary small-btn"
+                          onClick={handleAddImage}
+                        >
+                          <Plus size={15} />
+                          Agregar Foto
+                        </button>
+                      </div>
+                    </label>
+
+                    {editingProduct.images && editingProduct.images.length > 0 ? (
+                      <div className="images-thumbs-grid">
+                        {editingProduct.images.map((url, idx) => (
+                          <div className="thumb-item" key={url + idx}>
+                            <img src={url} alt={`Foto ${idx + 1}`} />
+                            <span className="thumb-index-tag">{idx === 0 ? 'Portada' : `#${idx + 1}`}</span>
+                            <button
+                              type="button"
+                              className="remove-thumb-btn"
+                              onClick={() => handleRemoveImage(idx)}
+                              title="Eliminar foto"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="no-images-help">
+                        <ImageIcon size={14} /> Si no agregas imágenes, se generará automáticamente la portada vectorial con el color seleccionado.
+                      </p>
+                    )}
+                  </div>
+
+                  <label className="form-field">
+                    <span>Descripción Corta (Tarjeta del Catálogo)</span>
+                    <textarea
+                      rows={2}
+                      value={editingProduct.shortDescription || ''}
+                      onChange={(e) =>
+                        setEditingProduct({ ...editingProduct, shortDescription: e.target.value })
+                      }
+                      placeholder="Resumen conciso para la tarjeta del catálogo..."
+                    />
+                  </label>
+
+                  <label className="form-field">
+                    <span>Descripción Larga (Detalle del Modal)</span>
+                    <textarea
+                      rows={3}
+                      value={editingProduct.longDescription || ''}
+                      onChange={(e) =>
+                        setEditingProduct({ ...editingProduct, longDescription: e.target.value })
+                      }
+                      placeholder="Explicación detallada del contenido del cuadernillo..."
+                    />
+                  </label>
+
+                  <label className="form-field">
+                    <span>Público Objetivo</span>
+                    <input
+                      type="text"
+                      value={editingProduct.targetAudience || ''}
+                      onChange={(e) =>
+                        setEditingProduct({ ...editingProduct, targetAudience: e.target.value })
+                      }
+                      placeholder="Ej. Personas que desean mejorar su regulación emocional..."
+                    />
+                  </label>
+
+                  <label className="form-field">
+                    <span>Estructura de Módulos y Actividades (Uno por línea)</span>
+                    <textarea
+                      rows={4}
+                      value={editingProduct.modulesText || ''}
+                      onChange={(e) =>
+                        setEditingProduct({ ...editingProduct, modulesText: e.target.value })
+                      }
+                      placeholder="Módulo 1: Psicoeducación y autorregistro...&#10;Módulo 2: Herramientas prácticas...&#10;Módulo 3: Plan de acción..."
+                    />
+                  </label>
+
+                  <div className="admin-form-sticky-footer">
+                    <button className="button primary" type="submit">
+                      <Save size={18} />
+                      Guardar Cuadernillo
+                    </button>
+                    <button
+                      className="button ghost"
+                      type="button"
+                      onClick={() => setEditingProduct(null)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+
+                {/* COLUMNA DERECHA: VISTA PREVIA EN VIVO (GENERAL + ACCESO A MODAL DETALLADO) */}
+                <div className="admin-preview-col">
+                  <div className="preview-sticky-box">
+                    <div className="preview-header">
+                      <Sparkles size={16} />
+                      <span>Vista Previa en Vivo (Catálogo)</span>
+                    </div>
+
+                    {/* TARJETA EXACTA DE CATÁLOGO */}
+                    <div className="product-card preview-card">
+                      <div
+                        className="product-art"
+                        style={{ '--accent': editingProduct.accent || '#0057d9' }}
+                      >
+                        {editingProduct.images && editingProduct.images.length > 0 ? (
+                          <img
+                            src={editingProduct.images[0]}
+                            alt={livePreviewProduct?.title}
+                            className="product-cover-img"
+                          />
+                        ) : (
+                          <div className="product-book-visual">
+                            <div className="book-spine" />
+                            <div className="book-cover-content">
+                              <span className="book-tag">EvoluMind</span>
+                              <Sparkles size={24} className="book-icon" />
+                              <h4 className="book-cover-title">
+                                {livePreviewProduct?.theme}
+                              </h4>
+                              <small className="book-format-tag">PDF</small>
+                            </div>
+                          </div>
+                        )}
+                        <span
+                          className={`product-status-pill ${
+                            editingProduct.status === 'disponible' ? 'available' : 'soon'
+                          }`}
+                        >
+                          {editingProduct.status === 'disponible' ? 'Disponible' : 'Oculto'}
+                        </span>
+                      </div>
+
+                      <div className="product-body">
+                        <div className="product-meta">
+                          <span className="product-category">
+                            {livePreviewProduct?.category}
+                          </span>
+                          <span className="product-pages">
+                            {livePreviewProduct?.pages}
+                          </span>
+                        </div>
+
+                        <h3 className="product-title">
+                          {livePreviewProduct?.title}
+                        </h3>
+                        <p className="product-desc">
+                          {livePreviewProduct?.shortDescription}
+                        </p>
+
+                        <div className="product-footer">
+                          <div className="product-price-box">
+                            <span className="price-label">Inversión</span>
+                            <strong className="product-price">
+                              {livePreviewProduct?.price}
+                            </strong>
+                          </div>
+                          <span className="product-format-badge">100% Digital</span>
+                        </div>
+                      </div>
+
+                      <div className="product-actions">
+                        <button
+                          className="icon-button view-btn"
+                          type="button"
+                          onClick={() => setFullDetailPreview(livePreviewProduct)}
+                        >
+                          <Eye size={16} />
+                          Ver Detalle
+                        </button>
+                        <span className="icon-button whatsapp-btn preview-cta-pill">
+                          Solicitar
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* BOTÓN EXTRA PARA ABRIR EL MODAL COMPLETO DETALLADO */}
+                    <button
+                      type="button"
+                      className="button secondary full-width preview-full-btn"
+                      onClick={() => setFullDetailPreview(livePreviewProduct)}
+                    >
+                      <Maximize2 size={16} />
+                      Previsualizar Modal Detallado
+                    </button>
+
+                    {/* VISTA RÁPIDA DE MÓDULOS */}
+                    <div className="preview-modules-box">
+                      <strong>
+                        <BookCheck size={15} /> Módulos Registrados ({livePreviewProduct?.modules?.length || 0}):
+                      </strong>
+                      {livePreviewProduct?.modules && livePreviewProduct.modules.length > 0 ? (
+                        <ul>
+                          {livePreviewProduct.modules.map((mod, i) => (
                             <li key={i}>
                               <CheckCircle2 size={13} /> {mod}
                             </li>
                           ))}
-                      </ul>
-                    ) : (
-                      <p className="empty-preview-note">Sin módulos especificados aún.</p>
-                    )}
+                        </ul>
+                      ) : (
+                        <p className="empty-preview-note">Sin módulos especificados aún.</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODAL DETALLADO PREVIEW REAL (SI EL USUARIO APRIETA VER DETALLE DESDE EL EDITOR) */}
+      {fullDetailPreview && (
+        <ProductDetailDialog
+          product={fullDetailPreview}
+          onClose={() => setFullDetailPreview(null)}
+        />
       )}
     </div>
   );
