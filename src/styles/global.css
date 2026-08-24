@@ -72,7 +72,7 @@ main {
 }
 
 /* ==========================================================================
-   NAVBAR (Text brand & 4 clean nav items)
+   NAVBAR
    ========================================================================== */
 .navbar {
   position: sticky;
@@ -285,7 +285,7 @@ main {
 }
 
 /* ==========================================================================
-   SECTION HEADERS & REDUCED PADDING
+   SECTION HEADERS
    ========================================================================== */
 .section {
   position: relative;
@@ -319,7 +319,7 @@ main {
 }
 
 /* ==========================================================================
-   HERO SECTION (Informative)
+   HERO SECTION
    ========================================================================== */
 .hero {
   position: relative;
@@ -766,7 +766,7 @@ main {
 }
 
 /* ==========================================================================
-   COMPACT PAGE HEROES (Catalog, Contact, Faq)
+   COMPACT PAGE HEROES
    ========================================================================== */
 .page-hero {
   display: flex;
@@ -953,7 +953,7 @@ main {
 .product-cover-img {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Perfect for book covers, vertical graphics & transparent PNGs */
+  object-fit: contain;
   border-radius: 12px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
   background: white;
@@ -1033,7 +1033,7 @@ main {
   color: white;
 }
 
-/* SIDE FLOATING ARROWS (Option 1) */
+/* SIDE FLOATING ARROWS */
 .card-side-arrow {
   position: absolute;
   top: 50%;
@@ -1067,7 +1067,7 @@ main {
   color: var(--color-primary);
 }
 
-/* PAGINATION DOTS (Option 1) */
+/* PAGINATION DOTS */
 .card-pagination-dots {
   position: absolute;
   bottom: 8px;
@@ -1233,7 +1233,7 @@ main {
   flex-direction: column;
   width: min(860px, 96vw);
   max-height: 90vh;
-  overflow: hidden; /* Preserves all 4 rounded corners at 28px! */
+  overflow: hidden;
   border-radius: var(--radius-lg);
   background: white;
   box-shadow: 0 26px 80px rgba(7, 19, 79, 0.25);
@@ -1394,45 +1394,6 @@ main {
   color: var(--color-muted);
   font-size: 0.84rem;
   line-height: 1.45;
-}
-
-.dialog-modules-fullwidth {
-  border-top: 1px solid var(--color-border);
-  padding-top: 1.1rem;
-}
-
-.dialog-modules-fullwidth h4 {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--color-night);
-  font-size: 0.94rem;
-  font-weight: 800;
-  margin-bottom: 0.7rem;
-}
-
-.modules-grid-2col {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
-}
-
-.module-grid-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.55rem;
-  font-size: 0.86rem;
-  color: var(--color-text);
-  line-height: 1.4;
-  background: var(--color-bg);
-  padding: 0.65rem 0.85rem;
-  border-radius: 12px;
-}
-
-.module-grid-item svg {
-  color: #00875a;
-  flex-shrink: 0;
-  margin-top: 2px;
 }
 
 .dialog-actions-footer {
@@ -1753,7 +1714,7 @@ main {
   place-items: center;
   border-radius: 14px;
   background: #ffebe9;
-  color: var(--color-coral);
+  color: #ff7a70;
   flex-shrink: 0;
 }
 
@@ -1774,7 +1735,7 @@ main {
 }
 
 /* ==========================================================================
-   FLOATING WHATSAPP BUTTON (Always in view)
+   FLOATING WHATSAPP BUTTON
    ========================================================================== */
 .floating-whatsapp-btn {
   position: fixed;
@@ -1842,7 +1803,7 @@ main {
 }
 
 /* ==========================================================================
-   MINIMALIST FOOTER (Single Line)
+   MINIMALIST FOOTER
    ========================================================================== */
 .footer-wrap {
   background: white;
@@ -2099,11 +2060,6 @@ main {
   font-weight: 900;
 }
 
-.admin-section-header p {
-  color: var(--color-muted);
-  font-size: 0.86rem;
-}
-
 .admin-empty-box {
   padding: 3rem 1.5rem;
   text-align: center;
@@ -2207,7 +2163,7 @@ main {
 }
 
 /* ==========================================================================
-   WIDE ADMIN EDIT MODAL WITH LIVE PREVIEW & PERFECT ROUNDED CORNERS
+   WIDE ADMIN EDIT MODAL WITH LIVE PREVIEW
    ========================================================================== */
 .admin-modal-wide {
   width: min(1180px, 96vw);
@@ -2217,7 +2173,7 @@ main {
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Keeps all 4 corners perfectly rounded! */
+  overflow: hidden;
   animation: zoomInModal 0.22s ease-out;
 }
 
@@ -2533,44 +2489,6 @@ main {
   margin-bottom: 1rem;
 }
 
-.preview-modules-box {
-  background: white;
-  padding: 0.9rem 1rem;
-  border-radius: 14px;
-  border: 1px solid var(--color-border);
-}
-
-.preview-modules-box strong {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.84rem;
-  color: var(--color-night);
-  margin-bottom: 0.5rem;
-}
-
-.preview-modules-box ul {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.preview-modules-box li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.45rem;
-  font-size: 0.78rem;
-  color: var(--color-muted);
-  line-height: 1.35;
-}
-
-.preview-modules-box li svg {
-  color: #00875a;
-  margin-top: 2px;
-  flex-shrink: 0;
-}
-
 .empty-preview-note {
   font-size: 0.8rem;
   color: var(--color-muted);
@@ -2687,7 +2605,7 @@ main {
 }
 
 /* ==========================================================================
-   RESPONSIVE DESIGN (Tablets & Phones)
+   RESPONSIVE DESIGN
    ========================================================================== */
 @media (max-width: 980px) {
   .desktop-nav {
@@ -2712,7 +2630,6 @@ main {
   .mission-vision,
   .contact-panel,
   .dialog-top-grid,
-  .modules-grid-2col,
   .admin-modal-layout-grid {
     grid-template-columns: 1fr;
   }

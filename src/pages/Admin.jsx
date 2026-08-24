@@ -2,9 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
-  BookCheck,
   Check,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Edit2,
@@ -51,8 +49,6 @@ const initialProductForm = {
   category: 'Regulación Emocional',
   shortDescription: '',
   longDescription: '',
-  modules: [],
-  modulesText: '',
   pages: '',
   targetAudience: '',
   price: '',
@@ -195,7 +191,6 @@ export default function Admin() {
     setEditingProduct({
       ...product,
       images: imgList,
-      modulesText: Array.isArray(product.modules) ? product.modules.join('\n') : '',
     });
   };
 
@@ -314,13 +309,6 @@ export default function Admin() {
       saveStoredCategories(updatedCats);
     }
 
-    const modulesList = editingProduct.modulesText
-      ? editingProduct.modulesText
-          .split('\n')
-          .map((m) => m.trim())
-          .filter(Boolean)
-      : editingProduct.modules || [];
-
     const finalImages = editingProduct.images || [];
     const primaryImage = finalImages[0] || editingProduct.imageUrl || '';
 
@@ -334,11 +322,9 @@ export default function Admin() {
       category: finalCategory,
       price: formattedPrice,
       pages: formattedPages,
-      modules: modulesList,
       images: finalImages,
       imageUrl: primaryImage,
     };
-    delete updatedProduct.modulesText;
 
     let newProductsList;
     if (isNew) {
@@ -386,9 +372,6 @@ export default function Admin() {
     if (!editingProduct) return null;
     const finalTheme = isCustomTheme && customThemeValue.trim() ? customThemeValue.trim() : editingProduct.theme;
     const finalCat = isCustomCategory && customCategoryValue.trim() ? customCategoryValue.trim() : editingProduct.category;
-    const modulesList = editingProduct.modulesText
-      ? editingProduct.modulesText.split('\n').map((m) => m.trim()).filter(Boolean)
-      : editingProduct.modules || [];
 
     const imgList = editingProduct.images && editingProduct.images.length > 0
       ? editingProduct.images
@@ -406,7 +389,6 @@ export default function Admin() {
       shortDescription: editingProduct.shortDescription || 'Resumen breve para la tarjeta de catálogo...',
       longDescription: editingProduct.longDescription || 'Explicación detallada del contenido del cuadernillo...',
       targetAudience: editingProduct.targetAudience || 'Público objetivo y recomendaciones...',
-      modules: modulesList.length > 0 ? modulesList : ['Módulo 1: Introducción y fundamentos...', 'Módulo 2: Ejercicios prácticos...'],
       images: imgList,
       imageUrl: imgList[0] || '',
     };
@@ -1010,18 +992,6 @@ export default function Admin() {
                     />
                   </label>
 
-                  <label className="form-field">
-                    <span>Estructura de Módulos y Actividades (Uno por línea)</span>
-                    <textarea
-                      rows={4}
-                      value={editingProduct.modulesText || ''}
-                      onChange={(e) =>
-                        setEditingProduct({ ...editingProduct, modulesText: e.target.value })
-                      }
-                      placeholder="Módulo 1: Psicoeducación y autorregistro...&#10;Módulo 2: Herramientas prácticas...&#10;Módulo 3: Plan de acción..."
-                    />
-                  </label>
-
                   <div className="admin-form-sticky-footer">
                     <button className="button primary" type="submit">
                       <Save size={18} />
@@ -1181,24 +1151,6 @@ export default function Admin() {
                       <Maximize2 size={16} />
                       Previsualizar Modal Detallado
                     </button>
-
-                    {/* VISTA RÁPIDA DE MÓDULOS */}
-                    <div className="preview-modules-box">
-                      <strong>
-                        <BookCheck size={15} /> Módulos Registrados ({livePreviewProduct?.modules?.length || 0}):
-                      </strong>
-                      {livePreviewProduct?.modules && livePreviewProduct.modules.length > 0 ? (
-                        <ul>
-                          {livePreviewProduct.modules.map((mod, i) => (
-                            <li key={i}>
-                              <CheckCircle2 size={13} /> {mod}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="empty-preview-note">Sin módulos especificados aún.</p>
-                      )}
-                    </div>
                   </div>
                 </div>
               </div>

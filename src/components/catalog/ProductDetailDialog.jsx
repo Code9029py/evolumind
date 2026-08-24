@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BookCheck, CheckCircle2, MessageCircle, Send, Sparkles, X } from 'lucide-react';
+import { MessageCircle, Send, Sparkles, X } from 'lucide-react';
 
 export default function ProductDetailDialog({ product, onClose }) {
   const [selectedImgIndex, setSelectedImgIndex] = useState(0);
@@ -119,23 +119,6 @@ export default function ProductDetailDialog({ product, onClose }) {
               )}
             </div>
           </div>
-
-          {product.modules && product.modules.length > 0 && (
-            <div className="dialog-modules-fullwidth">
-              <h4>
-                <BookCheck size={18} />
-                Estructura de Módulos y Actividades:
-              </h4>
-              <div className="modules-grid-2col">
-                {product.modules.map((moduleItem) => (
-                  <div className="module-grid-item" key={moduleItem}>
-                    <CheckCircle2 size={16} />
-                    <span>{moduleItem}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="dialog-actions-footer">
             <a

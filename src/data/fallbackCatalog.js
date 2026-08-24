@@ -7,13 +7,6 @@ export const fallbackCatalog = [
     shortDescription: 'Actividades lúdicas de preescritura, reconocimiento de emociones y dinámicas para la primera infancia.',
     longDescription:
       'Material psicopedagógico diseñado para familias, docentes y terapeutas. Contiene ejercicios de grafomotricidad, expresión de emociones básicas, asociación de letras y números y dinámicas guiadas para potenciar el desarrollo cognitivo y afectivo en niños.',
-    modules: [
-      'Módulo 1: Reconocimiento y dibujo de emociones básicas.',
-      'Módulo 2: Trazos, grafomotricidad y coordinación viso-motriz.',
-      'Módulo 3: Asociación de letras, fonemas y primeras palabras.',
-      'Módulo 4: Juegos de concentración, números y conteo lúdico.',
-      'Módulo 5: Guía para padres: acompañamiento positivo en el aprendizaje.',
-    ],
     pages: '52 páginas',
     targetAudience: 'Padres, educadores y profesionales del desarrollo y estimulación temprana.',
     price: '50.000 Gs.',
@@ -36,13 +29,6 @@ export const fallbackCatalog = [
     shortDescription: 'Ejercicios de autorregistro, respiración guiada y reestructuración cognitiva para recuperar la calma.',
     longDescription:
       'Un recurso técnico y práctico diseñado desde el enfoque cognitivo-conductual. Brinda herramientas paso a paso para reconocer detonantes, registrar niveles de activación fisiológica, aplicar técnicas de respiración y construir respuestas adaptativas ante momentos de sobrecarga.',
-    modules: [
-      'Módulo 1: Psicoeducación sobre la ansiedad y respuesta corporal.',
-      'Módulo 2: Mapa de detonantes y autorregistro de síntomas.',
-      'Módulo 3: Caja de herramientas: Respiración diafragmática y grounding.',
-      'Módulo 4: Reestructuración y cuestionamiento de pensamientos automáticos.',
-      'Módulo 5: Protocolo de acción personal ante episodios de crisis.',
-    ],
     pages: '46 páginas',
     targetAudience: 'Personas que buscan herramientas prácticas para gestionar la preocupación constante y la tensión diaria.',
     price: '50.000 Gs.',
@@ -61,13 +47,6 @@ export const fallbackCatalog = [
     shortDescription: 'Estrategias para gestionar la presión diaria, priorizar el descanso y prevenir el agotamiento.',
     longDescription:
       'Herramientas prácticas orientadas al balance de vida, la organización compasiva y la regulación psicofisiológica. Ayuda a diferenciar urgencias reales de presiones autoimpuestas, estructurar pausas activas y cultivar límites saludables.',
-    modules: [
-      'Módulo 1: Termómetro del estrés y detección de sobrecarga.',
-      'Módulo 2: Matriz de priorización consciente (urgente vs. importante).',
-      'Módulo 3: Rutinas de descanso reparador y micro-pausas.',
-      'Módulo 4: Gestión de la culpa al descansar y productividad compasiva.',
-      'Módulo 5: Plan de sostenimiento emocional y balance de energía.',
-    ],
     pages: '42 páginas',
     targetAudience: 'Estudiantes, trabajadores y personas con sobrecarga de tareas y responsabilidades.',
     price: '50.000 Gs.',
@@ -82,17 +61,10 @@ export const fallbackCatalog = [
     id: 'autoestima',
     title: 'Cuadernillo de Autoestima y Autoconcepto',
     theme: 'Autoestima',
-    category: 'Autoconocimiento',
+    category: 'Autoconconocimiento',
     shortDescription: 'Actividades para transformar el diálogo interno crítico, reconocer fortalezas y consolidar límites seguros.',
     longDescription:
       'Un recorrido guiado de introspección para sanar la relación contigo mismo. A través de ejercicios reflexivos y técnicas humanistas, aprenderás a desactivar la autocrítica destructiva, validar tus emociones y construir un autoconcepto compasivo.',
-    modules: [
-      'Módulo 1: Exploración del autoconcepto y creencias nucleares.',
-      'Módulo 2: Desactivando al crítico interno con autocompasión.',
-      'Módulo 3: Inventario de fortalezas, valores y logros propios.',
-      'Módulo 4: El arte de poner límites asertivos sin culpa.',
-      'Módulo 5: Hábitos diarios de validación y autocuidado.',
-    ],
     pages: '48 páginas',
     targetAudience: 'Personas que desean fortalecer su seguridad personal, autoimagen y asertividad.',
     price: '50.000 Gs.',
@@ -111,13 +83,6 @@ export const fallbackCatalog = [
     shortDescription: 'Un espacio íntimo y seguro para transitar pérdidas significativas, honrar recuerdos y reconstruir el sentido.',
     longDescription:
       'Guía terapéutica diseñada para acompañar las diferentes etapas del proceso de duelo (por fallecimiento, ruptura de vínculo, cambios de vida o pérdidas laborales). Ofrece ejercicios de expresión emocional, rituales de cierre simbólico y pautas para buscar apoyo respetando los tiempos individuales.',
-    modules: [
-      'Módulo 1: Comprendiendo las olas y fases del duelo.',
-      'Módulo 2: Diario de expresión emocional y desahogo guiado.',
-      'Módulo 3: Honrando lo vivido y el legado significativo.',
-      'Módulo 4: Autocuidado en días de dolor intenso.',
-      'Módulo 5: Reconstruyendo el sentido y pasos hacia adelante.',
-    ],
     pages: '50 páginas',
     targetAudience: 'Personas que atraviesan una pérdida y buscan un proceso guiado, respetuoso y privado.',
     price: '50.000 Gs.',
@@ -136,13 +101,6 @@ export const fallbackCatalog = [
     shortDescription: 'Herramientas para comunicar necesidades con claridad, reconocer patrones de apego y construir vínculos sanos.',
     longDescription:
       'Material enfocado en la mejora de la comunicación relacional, el reconocimiento de estilos afectivos y el manejo asertivo de desacuerdos. Incluye plantillas para conversaciones difíciles y pautas para establecer dinámicas de reciprocidad y empatía.',
-    modules: [
-      'Módulo 1: Estilos de apego y patrones relacionales.',
-      'Módulo 2: Comunicación asertiva y expresión de necesidades.',
-      'Módulo 3: Banderas rojas y verdes en los vínculos.',
-      'Módulo 4: Guía para abordar conversaciones difíciles con calma.',
-      'Módulo 5: Acuerdos de reciprocidad y límites compartidos.',
-    ],
     pages: '44 páginas',
     targetAudience: 'Personas interesadas en mejorar su comunicación afectiva y construir relaciones saludables.',
     price: '50.000 Gs.',
