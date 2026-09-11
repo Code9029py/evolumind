@@ -55,6 +55,7 @@ export default function CatalogFilters({
             <option value="todos">Todos los estados</option>
             <option value="disponible">Disponibles ahora</option>
             <option value="próximamente">Próximos lanzamientos</option>
+            <option value="agotado">Sin stock / Agotados</option>
           </select>
         </label>
       </div>

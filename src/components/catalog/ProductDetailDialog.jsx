@@ -34,9 +34,18 @@ export default function ProductDetailDialog({ product, onClose }) {
 
   const currentImage = imagesList[selectedImgIndex] || imagesList[0];
 
-  const whatsappMessage = encodeURIComponent(
-    `Hola EvoluMind, quiero adquirir el *${product.title}* (${product.price}). ¿Podrían darme los datos para transferir y recibir el PDF interactivo?`
-  );
+  const isSoon = product.status === 'próximamente';
+  const isOut = product.status === 'agotado';
+  const isAvailable = product.status === 'disponible' || (!isSoon && !isOut && product.status !== 'oculto');
+
+  let dialogWhatsappText = `Hola EvoluMind, quiero adquirir el *${product.title}* (${product.price}). ¿Podrían darme los datos para transferir y recibir el PDF interactivo?`;
+  if (isSoon) {
+    dialogWhatsappText = `Hola EvoluMind, me interesa tener más información sobre el próximo lanzamiento de *${product.title}*.`;
+  } else if (isOut) {
+    dialogWhatsappText = `Hola EvoluMind, quisiera consultar sobre la disponibilidad del *${product.title}*.`;
+  }
+
+  const whatsappMessage = encodeURIComponent(dialogWhatsappText);
   const whatsappUrl = `https://wa.me/595981597595?text=${whatsappMessage}`;
 
   return (
@@ -128,7 +137,7 @@ export default function ProductDetailDialog({ product, onClose }) {
               rel="noreferrer"
             >
               <MessageCircle size={18} />
-              Solicitar por WhatsApp ({product.price})
+              {isAvailable ? `Solicitar por WhatsApp (${product.price})` : 'Consultar por WhatsApp'}
             </a>
             <a className="button ghost" href={`/contacto?producto=${product.id}`} onClick={onClose}>
               <Send size={18} />

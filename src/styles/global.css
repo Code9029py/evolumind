@@ -1033,6 +1033,11 @@ main {
   color: white;
 }
 
+.product-status-pill.out {
+  background: #dc2626;
+  color: white;
+}
+
 /* SIDE FLOATING ARROWS */
 .card-side-arrow {
   position: absolute;
@@ -2142,6 +2147,8 @@ main {
 }
 
 .pill-visible { background: #d1fadf; color: #027a48; }
+.pill-soon { background: #fef3c7; color: #b45309; }
+.pill-out { background: #fee2e2; color: #991b1b; }
 .pill-hidden { background: #eaecf0; color: #475467; }
 .pill-featured { background: #e0eaff; color: #2d55b4; }
 .pill-trash { background: #fee4e2; color: #d92d20; }

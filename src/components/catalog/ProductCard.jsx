@@ -3,7 +3,12 @@ import { ChevronLeft, ChevronRight, Eye, MessageCircle, Sparkles } from 'lucide-
 
 export default function ProductCard({ product, onView }) {
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
-  const isAvailable = product.status === 'disponible';
+  const isSoon = product.status === 'próximamente';
+  const isOut = product.status === 'agotado';
+  const isAvailable = product.status === 'disponible' || (!isSoon && !isOut && product.status !== 'oculto');
+
+  const statusLabel = isAvailable ? 'Disponible' : isOut ? 'Sin Stock' : 'Próximamente';
+  const statusClass = isAvailable ? 'available' : isOut ? 'out' : 'soon';
 
   const imagesList =
     Array.isArray(product.images) && product.images.length > 0
@@ -35,9 +40,14 @@ export default function ProductCard({ product, onView }) {
     }
   };
 
-  const whatsappMessage = encodeURIComponent(
-    `Hola EvoluMind, me interesa solicitar el *${product.title}* (${product.price}). ¿Podrían indicarme los pasos para el pago y la entrega del PDF?`
-  );
+  let defaultMsg = `Hola EvoluMind, me interesa solicitar el *${product.title}* (${product.price}). ¿Podrían indicarme los pasos para el pago y la entrega del PDF?`;
+  if (isSoon) {
+    defaultMsg = `Hola EvoluMind, me interesa tener más información sobre el próximo lanzamiento de *${product.title}*.`;
+  } else if (isOut) {
+    defaultMsg = `Hola EvoluMind, quisiera consultar sobre la disponibilidad del *${product.title}*.`;
+  }
+
+  const whatsappMessage = encodeURIComponent(defaultMsg);
   const whatsappUrl = `https://wa.me/595981597595?text=${whatsappMessage}`;
 
   return (
@@ -97,8 +107,8 @@ export default function ProductCard({ product, onView }) {
           </>
         )}
 
-        <span className={`product-status-pill ${isAvailable ? 'available' : 'soon'}`}>
-          {isAvailable ? 'Disponible' : 'Próximamente'}
+        <span className={`product-status-pill ${statusClass}`}>
+          {statusLabel}
         </span>
       </div>
 
@@ -134,10 +144,10 @@ export default function ProductCard({ product, onView }) {
           href={whatsappUrl}
           target="_blank"
           rel="noreferrer"
-          aria-label={`Solicitar ${product.title} por WhatsApp`}
+          aria-label={`${isAvailable ? 'Solicitar' : 'Consultar'} ${product.title} por WhatsApp`}
         >
           <MessageCircle size={17} />
-          Solicitar
+          {isAvailable ? 'Solicitar' : 'Consultar'}
         </a>
       </div>
     </article>

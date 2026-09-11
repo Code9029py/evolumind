@@ -272,10 +272,11 @@ export default function Admin() {
   };
 
   const handleToggleVisibility = async (product) => {
-    const nextStatus = product.status === 'disponible' ? 'oculto' : 'disponible';
+    const isCurrentlyHidden = product.status === 'oculto';
+    const nextStatus = isCurrentlyHidden ? 'disponible' : 'oculto';
     const updated = { ...product, status: nextStatus };
     await saveProductOnline(updated);
-    showToast(`Cuadernillo marcado como "${nextStatus}"`);
+    showToast(isCurrentlyHidden ? 'Cuadernillo visible en catálogo' : 'Cuadernillo ocultado del catálogo');
   };
 
   // Local Device Files Upload Handler (Desktop & Mobile)
@@ -685,9 +686,18 @@ export default function Admin() {
                   <div className="admin-row-info">
                     <div className="admin-row-title-line">
                       <strong>{product.title}</strong>
-                      <span className={`status-pill ${isHidden ? 'pill-hidden' : 'pill-visible'}`}>
-                        {isHidden ? 'Oculto' : 'Disponible'}
-                      </span>
+                      {product.status === 'disponible' && (
+                        <span className="status-pill pill-visible">Disponible</span>
+                      )}
+                      {product.status === 'próximamente' && (
+                        <span className="status-pill pill-soon">Próximamente</span>
+                      )}
+                      {product.status === 'agotado' && (
+                        <span className="status-pill pill-out">Sin Stock</span>
+                      )}
+                      {product.status === 'oculto' && (
+                        <span className="status-pill pill-hidden">Oculto</span>
+                      )}
                       {product.featured && <span className="status-pill pill-featured">Destacado</span>}
                     </div>
                     <p>{product.shortDescription || 'Sin descripción corta'}</p>
@@ -701,10 +711,10 @@ export default function Admin() {
                       className="button secondary small-btn"
                       type="button"
                       onClick={() => handleToggleVisibility(product)}
-                      title={isHidden ? 'Hacer visible en catálogo' : 'Ocultar del catálogo'}
+                      title={isHidden ? 'Publicar en catálogo (Disponible)' : 'Ocultar del catálogo'}
                     >
-                      {isHidden ? <EyeOff size={15} /> : <Eye size={15} />}
-                      {isHidden ? 'Oculto' : 'Visible'}
+                      {isHidden ? <Eye size={15} /> : <EyeOff size={15} />}
+                      {isHidden ? 'Mostrar' : 'Ocultar'}
                     </button>
                     <button
                       className="button secondary small-btn"
@@ -927,13 +937,15 @@ export default function Admin() {
                     <label className="form-field">
                       <span>Estado en Catálogo</span>
                       <select
-                        value={editingProduct.status}
+                        value={editingProduct.status || 'disponible'}
                         onChange={(e) =>
                           setEditingProduct({ ...editingProduct, status: e.target.value })
                         }
                       >
-                        <option value="disponible">Disponible (Visible en la tienda)</option>
-                        <option value="oculto">Oculto (Solo visible en administrador)</option>
+                        <option value="disponible">✅ Disponible (A la venta)</option>
+                        <option value="próximamente">⏳ Próximamente (Próximo lanzamiento)</option>
+                        <option value="agotado">⛔ Sin Stock / Agotado</option>
+                        <option value="oculto">👁️ Oculto (Solo visible en administrador)</option>
                       </select>
                     </label>
                   </div>
@@ -1272,10 +1284,20 @@ export default function Admin() {
 
                         <span
                           className={`product-status-pill ${
-                            editingProduct.status === 'disponible' ? 'available' : 'soon'
+                            editingProduct.status === 'disponible'
+                              ? 'available'
+                              : editingProduct.status === 'agotado'
+                              ? 'out'
+                              : 'soon'
                           }`}
                         >
-                          {editingProduct.status === 'disponible' ? 'Disponible' : 'Oculto'}
+                          {editingProduct.status === 'disponible'
+                            ? 'Disponible'
+                            : editingProduct.status === 'agotado'
+                            ? 'Sin Stock'
+                            : editingProduct.status === 'oculto'
+                            ? 'Oculto'
+                            : 'Próximamente'}
                         </span>
                       </div>
 
