@@ -5,6 +5,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Database,
   Edit2,
   Eye,
   EyeOff,
@@ -23,17 +24,63 @@ import {
   Upload,
   UploadCloud,
   User,
+  Wifi,
+  WifiOff,
   X,
 } from 'lucide-react';
 import ProductDetailDialog from '../components/catalog/ProductDetailDialog.jsx';
 import {
-  getStoredCatalog,
-  saveStoredCatalog,
-  getStoredThemes,
-  saveStoredThemes,
-  getStoredCategories,
-  saveStoredCategories,
-} from '../services/catalogStorage.js';
+  subscribeCatalog,
+  saveProductOnline,
+  deleteProductOnline,
+  subscribeThemes,
+  saveThemesOnline,
+  subscribeCategories,
+  saveCategoriesOnline,
+  seedCatalogOnline,
+} from '../services/catalogService.js';
+import {
+  isFirebaseConfigured,
+  getFirebaseConfig,
+  saveFirebaseConfig,
+  clearFirebaseConfig,
+} from '../services/firebase.js';
+
+function parseFirebaseConfigInput(text) {
+  if (!text || typeof text !== 'string') return null;
+  const trimmed = text.trim();
+
+  // Try JSON.parse first
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && parsed.apiKey && parsed.projectId) return parsed;
+  } catch (e) {
+    // Continue to regex extractor
+  }
+
+  // Regex extract each key if JS snippet was pasted
+  const extract = (key) => {
+    const regex = new RegExp(`['"]?${key}['"]?\\s*:\\s*['"]([^'"]+)['"]`, 'i');
+    const match = trimmed.match(regex);
+    return match ? match[1] : '';
+  };
+
+  const apiKey = extract('apiKey');
+  const projectId = extract('projectId');
+
+  if (apiKey && projectId) {
+    return {
+      apiKey,
+      authDomain: extract('authDomain'),
+      projectId,
+      storageBucket: extract('storageBucket'),
+      messagingSenderId: extract('messagingSenderId'),
+      appId: extract('appId'),
+    };
+  }
+
+  return null;
+}
 
 const COLOR_PRESETS = [
   { name: 'Azul Primario', value: '#0057d9' },
@@ -166,17 +213,34 @@ export default function Admin() {
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  const colorInputRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const [firebaseOnline, setFirebaseOnline] = useState(isFirebaseConfigured());
+  const [showDbModal, setShowDbModal] = useState(false);
+  const [dbConfigInput, setDbConfigInput] = useState('');
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('evolumind_admin_auth');
     if (sessionAuth === 'true') {
       setAuthenticated(true);
     }
-    setProducts(getStoredCatalog());
-    setThemes(getStoredThemes());
-    setCategories(getStoredCategories());
+
+    const unsubCatalog = subscribeCatalog(setProducts);
+    const unsubThemes = subscribeThemes(setThemes);
+    const unsubCategories = subscribeCategories(setCategories);
+
+    const handleConfigChange = () => {
+      setFirebaseOnline(isFirebaseConfigured());
+    };
+    window.addEventListener('evolumind_firebase_config_changed', handleConfigChange);
+
+    return () => {
+      if (typeof unsubCatalog === 'function') unsubCatalog();
+      if (typeof unsubThemes === 'function') unsubThemes();
+      if (typeof unsubCategories === 'function') unsubCategories();
+      window.removeEventListener('evolumind_firebase_config_changed', handleConfigChange);
+    };
   }, []);
 
   const showToast = (msg) => {
@@ -252,11 +316,10 @@ export default function Admin() {
     });
   };
 
-  const handleToggleVisibility = (product) => {
+  const handleToggleVisibility = async (product) => {
     const nextStatus = product.status === 'disponible' ? 'oculto' : 'disponible';
-    const updated = products.map((p) => (p.id === product.id ? { ...p, status: nextStatus } : p));
-    setProducts(updated);
-    saveStoredCatalog(updated);
+    const updated = { ...product, status: nextStatus };
+    await saveProductOnline(updated);
     showToast(`Cuadernillo marcado como "${nextStatus}"`);
   };
 
@@ -340,14 +403,14 @@ export default function Admin() {
   };
 
   // Delete theme or category with confirmation
-  const handleConfirmDeleteItem = () => {
+  const handleConfirmDeleteItem = async () => {
     if (!itemToDeleteConfirm) return;
     const { type, name } = itemToDeleteConfirm;
 
     if (type === 'themes') {
       const updated = themes.filter((t) => t !== name);
       setThemes(updated);
-      saveStoredThemes(updated);
+      await saveThemesOnline(updated);
       if (editingProduct && editingProduct.theme === name) {
         setEditingProduct({ ...editingProduct, theme: updated[0] || 'Ansiedad' });
       }
@@ -355,7 +418,7 @@ export default function Admin() {
     } else if (type === 'categories') {
       const updated = categories.filter((c) => c !== name);
       setCategories(updated);
-      saveStoredCategories(updated);
+      await saveCategoriesOnline(updated);
       if (editingProduct && editingProduct.category === name) {
         setEditingProduct({ ...editingProduct, category: updated[0] || 'Regulación Emocional' });
       }
@@ -365,7 +428,7 @@ export default function Admin() {
     setItemToDeleteConfirm(null);
   };
 
-  const handleSaveProduct = (e) => {
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
     if (!editingProduct.title.trim()) {
       alert('Por favor ingresa un título para el cuadernillo.');
@@ -382,7 +445,7 @@ export default function Admin() {
     if (isCustomTheme && finalTheme && !themes.includes(finalTheme)) {
       const updatedThemes = [...themes, finalTheme];
       setThemes(updatedThemes);
-      saveStoredThemes(updatedThemes);
+      await saveThemesOnline(updatedThemes);
     }
 
     let finalCategory = isCustomCategory ? customCategoryValue.trim() : editingProduct.category;
@@ -394,7 +457,7 @@ export default function Admin() {
     if (isCustomCategory && finalCategory && !categories.includes(finalCategory)) {
       const updatedCats = [...categories, finalCategory];
       setCategories(updatedCats);
-      saveStoredCategories(updatedCats);
+      await saveCategoriesOnline(updatedCats);
     }
 
     const finalImages = editingProduct.images || [];
@@ -414,43 +477,44 @@ export default function Admin() {
       imageUrl: primaryImage,
     };
 
-    let newProductsList;
-    if (isNew) {
-      newProductsList = [updatedProduct, ...products];
-    } else {
-      newProductsList = products.map((p) => (p.id === updatedProduct.id ? updatedProduct : p));
+    setIsSavingProduct(true);
+    try {
+      const res = await saveProductOnline(updatedProduct);
+      setEditingProduct(null);
+      if (res && res.online) {
+        showToast(isNew ? '¡Nuevo cuadernillo publicado en la nube!' : '¡Cambios sincronizados en línea!');
+      } else {
+        showToast(isNew ? '¡Nuevo cuadernillo publicado!' : '¡Cambios guardados con éxito!');
+      }
+    } catch (err) {
+      console.error('Error guardando:', err);
+      showToast('Error al guardar cuadernillo.');
+    } finally {
+      setIsSavingProduct(false);
     }
-
-    setProducts(newProductsList);
-    saveStoredCatalog(newProductsList);
-    setEditingProduct(null);
-    showToast(isNew ? '¡Nuevo cuadernillo publicado!' : '¡Cambios guardados con éxito!');
   };
 
   // Soft delete (moves to status: 'eliminado')
-  const handleSoftDelete = (id, title) => {
+  const handleSoftDelete = async (id, title) => {
     if (confirm(`¿Mover "${title}" a la papelera?`)) {
-      const updated = products.map((p) => (p.id === id ? { ...p, status: 'eliminado' } : p));
-      setProducts(updated);
-      saveStoredCatalog(updated);
+      await deleteProductOnline(id, false);
       showToast('Cuadernillo movido a la papelera');
     }
   };
 
   // Restore from trash
-  const handleRestore = (id) => {
-    const updated = products.map((p) => (p.id === id ? { ...p, status: 'disponible' } : p));
-    setProducts(updated);
-    saveStoredCatalog(updated);
-    showToast('Cuadernillo restaurado al catálogo activo');
+  const handleRestore = async (id) => {
+    const product = products.find((p) => p.id === id);
+    if (product) {
+      await saveProductOnline({ ...product, status: 'disponible' });
+      showToast('Cuadernillo restaurado al catálogo activo');
+    }
   };
 
   // Permanent delete
-  const handlePermanentDelete = (id, title) => {
+  const handlePermanentDelete = async (id, title) => {
     if (confirm(`¿Eliminar definitivamente "${title}"? Esta acción no se puede deshacer.`)) {
-      const updated = products.filter((p) => p.id !== id);
-      setProducts(updated);
-      saveStoredCatalog(updated);
+      await deleteProductOnline(id, true);
       showToast('Cuadernillo eliminado permanentemente');
     }
   };
@@ -548,9 +612,24 @@ export default function Admin() {
 
       <header className="admin-topbar">
         <div>
-          <span className="badge">Administración</span>
+          <div className="admin-header-badge-row">
+            <span className="badge">Administración</span>
+            <button
+              type="button"
+              className={`firebase-status-pill ${firebaseOnline ? 'online' : 'offline'}`}
+              onClick={() => {
+                const cfg = getFirebaseConfig();
+                setDbConfigInput(cfg ? JSON.stringify(cfg, null, 2) : '');
+                setShowDbModal(true);
+              }}
+              title="Configurar conexión con la nube de Firebase"
+            >
+              {firebaseOnline ? <Wifi size={13} /> : <WifiOff size={13} />}
+              <span>{firebaseOnline ? 'En Línea (Firebase)' : 'Modo Local (Sin Nube)'}</span>
+            </button>
+          </div>
           <h1>Catálogo de Cuadernillos</h1>
-          <p>Gestiona el estado, precios, imágenes e información de cada libro digital.</p>
+          <p>Gestiona el estado, precios, imágenes e información sincronizados en tiempo real.</p>
         </div>
 
         <div className="admin-topbar-actions">
@@ -561,6 +640,18 @@ export default function Admin() {
             </button>
           ) : (
             <>
+              <button
+                className="button ghost db-btn"
+                type="button"
+                onClick={() => {
+                  const cfg = getFirebaseConfig();
+                  setDbConfigInput(cfg ? JSON.stringify(cfg, null, 2) : '');
+                  setShowDbModal(true);
+                }}
+              >
+                <Database size={16} />
+                Base de Datos
+              </button>
               <button className="button primary" type="button" onClick={handleStartNew}>
                 <Plus size={18} />
                 Nuevo Cuadernillo
@@ -1145,9 +1236,9 @@ export default function Admin() {
                   </label>
 
                   <div className="admin-form-sticky-footer">
-                    <button className="button primary" type="submit">
+                    <button className="button primary" type="submit" disabled={isSavingProduct}>
                       <Save size={18} />
-                      Guardar Cuadernillo
+                      {isSavingProduct ? 'Guardando en la nube...' : 'Guardar Cuadernillo'}
                     </button>
                     <button
                       className="button ghost"
@@ -1404,6 +1495,137 @@ export default function Admin() {
               >
                 Sí, Eliminar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIGURACIÓN DE BASE DE DATOS FIREBASE */}
+      {showDbModal && (
+        <div className="dialog-backdrop" onClick={() => setShowDbModal(false)}>
+          <div className="admin-modal-box db-config-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div className="modal-title-wrap">
+                <span className="badge">Configuración Cloud</span>
+                <h3>Conexión a Firebase Firestore</h3>
+              </div>
+              <button
+                className="dialog-close"
+                type="button"
+                onClick={() => setShowDbModal(false)}
+                aria-label="Cerrar ventana"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="admin-modal-body db-modal-body">
+              <div className={`db-status-banner ${firebaseOnline ? 'banner-online' : 'banner-offline'}`}>
+                {firebaseOnline ? (
+                  <>
+                    <Wifi size={22} />
+                    <div>
+                      <strong>¡Conexión Activa con Firebase!</strong>
+                      <p>Los cuadernillos que agregues, edites o des de baja se sincronizan en tiempo real para todos los visitantes.</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff size={22} />
+                    <div>
+                      <strong>Actualmente en Modo Local</strong>
+                      <p>Los cambios solo se guardan en este dispositivo. Pega las credenciales de Firebase abajo para sincronizar en línea con todos los celulares y PCs.</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="db-instructions-card">
+                <h4>¿Cómo conectar tu Firebase? (Toma 2 minutos)</h4>
+                <ol>
+                  <li>Ingresa a <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer">console.firebase.google.com</a> y crea un proyecto gratuito.</li>
+                  <li>En el menú ve a <strong>Compilación &gt; Firestore Database</strong> y crea la base de datos en <strong>Modo de prueba</strong>.</li>
+                  <li>En la vista general del proyecto, agrega una app Web <code>&lt;/&gt;</code> y copia el bloque de código <code>const firebaseConfig = &#123; ... &#125;;</code>.</li>
+                  <li>Pega ese texto aquí abajo y haz clic en <strong>"Guardar Conexión"</strong>.</li>
+                </ol>
+              </div>
+
+              <div className="form-field">
+                <label>
+                  <span>Pega tu configuración de Firebase (JSON o código copiado de la consola)</span>
+                  <textarea
+                    rows={7}
+                    placeholder={`const firebaseConfig = {\n  apiKey: "AIzaSy...",\n  authDomain: "...",\n  projectId: "...",\n  ...\n};`}
+                    value={dbConfigInput}
+                    onChange={(e) => setDbConfigInput(e.target.value)}
+                    className="db-config-textarea"
+                  />
+                </label>
+              </div>
+
+              <div className="db-modal-actions-row">
+                <button
+                  type="button"
+                  className="button primary"
+                  onClick={() => {
+                    const parsed = parseFirebaseConfigInput(dbConfigInput);
+                    if (!parsed) {
+                      alert('No se pudieron reconocer las credenciales. Asegúrate de incluir al menos apiKey y projectId.');
+                      return;
+                    }
+                    const ok = saveFirebaseConfig(parsed);
+                    if (ok) {
+                      setFirebaseOnline(true);
+                      showToast('¡Configuración de Firebase guardada con éxito!');
+                      setShowDbModal(false);
+                      window.location.reload();
+                    } else {
+                      alert('Error al guardar la configuración.');
+                    }
+                  }}
+                >
+                  <Save size={16} />
+                  Guardar Conexión
+                </button>
+
+                {firebaseOnline && (
+                  <>
+                    <button
+                      type="button"
+                      className="button secondary"
+                      onClick={async () => {
+                        try {
+                          await seedCatalogOnline();
+                          showToast('¡Catálogo inicial sincronizado en Firebase con éxito!');
+                        } catch (e) {
+                          alert('Error al inicializar catálogo: ' + e.message);
+                        }
+                      }}
+                      title="Sube los cuadernillos de muestra a tu base de datos de Firebase"
+                    >
+                      <Sparkles size={16} />
+                      Subir Catálogo Inicial a Firebase
+                    </button>
+
+                    <button
+                      type="button"
+                      className="button danger-ghost"
+                      onClick={() => {
+                        if (confirm('¿Desconectar Firebase de este navegador? Volverá al modo local.')) {
+                          clearFirebaseConfig();
+                          setFirebaseOnline(false);
+                          setDbConfigInput('');
+                          showToast('Firebase desconectado');
+                          setShowDbModal(false);
+                          window.location.reload();
+                        }
+                      }}
+                    >
+                      Desconectar
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

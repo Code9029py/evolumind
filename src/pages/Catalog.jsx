@@ -4,7 +4,7 @@ import CatalogFilters from '../components/catalog/CatalogFilters.jsx';
 import CatalogGrid from '../components/catalog/CatalogGrid.jsx';
 import CatalogHeader from '../components/catalog/CatalogHeader.jsx';
 import ProductDetailDialog from '../components/catalog/ProductDetailDialog.jsx';
-import { getCatalog } from '../services/sheetsApi.js';
+import { subscribeCatalog } from '../services/catalogService.js';
 
 export default function Catalog() {
   const [products, setProducts] = useState([]);
@@ -14,10 +14,9 @@ export default function Catalog() {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    getCatalog().then(setProducts);
-
-    const handleUpdate = () => getCatalog().then(setProducts);
-    window.addEventListener('evolumind_catalog_updated', handleUpdate);
+    const unsubscribe = subscribeCatalog((newProducts) => {
+      setProducts(newProducts);
+    });
 
     // Parse URL params if present
     const params = new URLSearchParams(window.location.search);
@@ -27,7 +26,9 @@ export default function Catalog() {
     if (searchParam) setSearch(searchParam);
     if (themeParam) setTheme(themeParam);
 
-    return () => window.removeEventListener('evolumind_catalog_updated', handleUpdate);
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
   }, []);
 
   // Auto-open product detail if ?producto=... parameter was passed
