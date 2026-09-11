@@ -1354,7 +1354,7 @@ export default function Admin() {
 
                         <div className="product-footer">
                           <div className="product-price-box">
-                            <span className="price-label">Inversión</span>
+                            <span className="price-label">Precio</span>
                             <strong className="product-price">
                               {livePreviewProduct?.price}
                             </strong>
@@ -1368,25 +1368,20 @@ export default function Admin() {
                           className="icon-button view-btn"
                           type="button"
                           onClick={() => setFullDetailPreview(livePreviewProduct)}
+                          title="Abrir vista previa del modal detallado"
                         >
                           <Eye size={16} />
                           Ver Detalle
                         </button>
-                        <span className="icon-button whatsapp-btn preview-cta-pill">
+                        <span
+                          className="icon-button whatsapp-btn preview-cta-pill"
+                          title="Simulador: En la tienda real este botón abre WhatsApp"
+                          style={{ cursor: 'default' }}
+                        >
                           Solicitar
                         </span>
                       </div>
                     </div>
-
-                    {/* BOTÓN EXTRA PARA ABRIR EL MODAL COMPLETO DETALLADO */}
-                    <button
-                      type="button"
-                      className="button secondary full-width preview-full-btn"
-                      onClick={() => setFullDetailPreview(livePreviewProduct)}
-                    >
-                      <Maximize2 size={16} />
-                      Previsualizar Modal Detallado
-                    </button>
                   </div>
                 </div>
               </div>
@@ -1395,11 +1390,12 @@ export default function Admin() {
         </div>
       )}
 
-      {/* MODAL DETALLADO PREVIEW REAL (PANTALLA COMPLETA) */}
+      {/* MODAL DETALLADO PREVIEW REAL (PANTALLA COMPLETA EN MODO SIMULADOR) */}
       {fullDetailPreview && (
         <ProductDetailDialog
           product={fullDetailPreview}
           onClose={() => setFullDetailPreview(null)}
+          isPreview={true}
         />
       )}
 

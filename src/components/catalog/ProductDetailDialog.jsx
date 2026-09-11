@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, Send, Sparkles, X } from 'lucide-react';
 
-export default function ProductDetailDialog({ product, onClose }) {
+export default function ProductDetailDialog({ product, onClose, isPreview = false }) {
   const [selectedImgIndex, setSelectedImgIndex] = useState(0);
 
   useEffect(() => {
@@ -100,14 +100,21 @@ export default function ProductDetailDialog({ product, onClose }) {
 
             <div className="dialog-right-col">
               <div className="dialog-header">
-                <span className="eyebrow">{product.category}</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.2rem' }}>
+                  <span className="eyebrow" style={{ marginBottom: 0 }}>{product.category}</span>
+                  {isPreview && (
+                    <span className="badge" style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', fontSize: '0.72rem' }}>
+                      👁️ Modo Vista Previa
+                    </span>
+                  )}
+                </div>
                 <h2 id="product-dialog-title">{product.title}</h2>
               </div>
 
               {/* BARRA ELEGANTE Y PROPORCIONADA DE METADATOS Y PRECIO */}
               <div className="dialog-specs-banner">
                 <div className="dialog-spec-item price-spec">
-                  <span className="spec-label">Inversión</span>
+                  <span className="spec-label">Precio</span>
                   <strong className="spec-value price">{product.price}</strong>
                 </div>
                 <div className="dialog-spec-sep" />
@@ -134,19 +141,50 @@ export default function ProductDetailDialog({ product, onClose }) {
           </div>
 
           <div className="dialog-actions-footer">
-            <a
-              className="button primary whatsapp-cta"
-              href={whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <MessageCircle size={18} />
-              {isAvailable ? `Solicitar por WhatsApp (${product.price})` : 'Consultar por WhatsApp'}
-            </a>
-            <a className="button ghost" href={`/contacto?producto=${product.id}`} onClick={onClose}>
-              <Send size={18} />
-              Consultar por Formulario
-            </a>
+            {isPreview ? (
+              <>
+                <button
+                  type="button"
+                  className="button primary whatsapp-cta"
+                  title="Modo vista previa: en la tienda real esto abre WhatsApp"
+                  onClick={() =>
+                    alert('ℹ️ Modo Vista Previa: en la tienda pública este botón abrirá WhatsApp con el mensaje de pedido configurado.')
+                  }
+                >
+                  <MessageCircle size={18} />
+                  {isAvailable ? `Solicitar por WhatsApp (${product.price})` : 'Consultar por WhatsApp'}
+                  <small style={{ opacity: 0.8, fontSize: '0.72rem', marginLeft: '0.35rem' }}>(Vista previa)</small>
+                </button>
+                <button
+                  type="button"
+                  className="button ghost"
+                  title="Modo vista previa: en la tienda real esto abre el formulario"
+                  onClick={() =>
+                    alert('ℹ️ Modo Vista Previa: en la tienda pública este botón redirige a /contacto con este cuadernillo preseleccionado.')
+                  }
+                >
+                  <Send size={18} />
+                  Consultar por Formulario
+                  <small style={{ opacity: 0.8, fontSize: '0.72rem', marginLeft: '0.35rem' }}>(Vista previa)</small>
+                </button>
+              </>
+            ) : (
+              <>
+                <a
+                  className="button primary whatsapp-cta"
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <MessageCircle size={18} />
+                  {isAvailable ? `Solicitar por WhatsApp (${product.price})` : 'Consultar por WhatsApp'}
+                </a>
+                <a className="button ghost" href={`/contacto?producto=${product.id}`} onClick={onClose}>
+                  <Send size={18} />
+                  Consultar por Formulario
+                </a>
+              </>
+            )}
           </div>
         </div>
       </section>

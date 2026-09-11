@@ -126,7 +126,7 @@ export default function ProductCard({ product, onView }) {
 
         <div className="product-footer">
           <div className="product-price-box">
-            <span className="price-label">Inversión</span>
+            <span className="price-label">Precio</span>
             <strong className="product-price">{product.price}</strong>
           </div>
           <span className="product-format-badge">100% Digital</span>
