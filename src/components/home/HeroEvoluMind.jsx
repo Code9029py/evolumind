@@ -1,5 +1,4 @@
 import { Clock, Lock, Sparkles, ShieldCheck } from 'lucide-react';
-import logoImg from '../../assets/logo/EvoluMind_logo.jpeg';
 import { heroContent } from '../../theme/evolumindTheme.js';
 
 const indicators = [
@@ -36,7 +35,14 @@ export default function HeroEvoluMind() {
 
       <div className="hero-visual">
         <div className="logo-orb">
-          <img src={logoImg} alt="EvoluMind - Salud Mental y Bienestar Digital" />
+          <img
+            src="/logo.jpeg"
+            alt="EvoluMind - Salud Mental y Bienestar Digital"
+            fetchPriority="high"
+            decoding="async"
+            width="280"
+            height="280"
+          />
           <div className="neural-rings" />
         </div>
         <div className="floating-chip chip-a">
