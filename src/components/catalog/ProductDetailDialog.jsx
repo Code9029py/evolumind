@@ -37,7 +37,7 @@ export default function ProductDetailDialog({ product, onClose }) {
   const whatsappMessage = encodeURIComponent(
     `Hola EvoluMind, quiero adquirir el *${product.title}* (${product.price}). ¿Podrían darme los datos para transferir y recibir el PDF interactivo?`
   );
-  const whatsappUrl = `https://wa.me/595992574146?text=${whatsappMessage}`;
+  const whatsappUrl = `https://wa.me/595981597595?text=${whatsappMessage}`;
 
   return (
     <div className="dialog-backdrop" role="presentation" onClick={onClose}>

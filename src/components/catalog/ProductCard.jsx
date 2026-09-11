@@ -38,7 +38,7 @@ export default function ProductCard({ product, onView }) {
   const whatsappMessage = encodeURIComponent(
     `Hola EvoluMind, me interesa solicitar el *${product.title}* (${product.price}). ¿Podrían indicarme los pasos para el pago y la entrega del PDF?`
   );
-  const whatsappUrl = `https://wa.me/595992574146?text=${whatsappMessage}`;
+  const whatsappUrl = `https://wa.me/595981597595?text=${whatsappMessage}`;
 
   return (
     <article className="product-card">

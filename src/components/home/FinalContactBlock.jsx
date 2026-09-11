@@ -17,7 +17,7 @@ export default function FinalContactBlock() {
         <div className="final-cta-buttons">
           <a
             className="button primary white-btn"
-            href="https://wa.me/595992574146?text=Hola%20EvoluMind,%20me%20gustar%C3%ADa%20adquirir%20un%20cuadernillo%20digital."
+            href="https://wa.me/595981597595?text=Hola%20EvoluMind,%20me%20gustar%C3%ADa%20adquirir%20un%20cuadernillo%20digital."
             target="_blank"
             rel="noreferrer"
           >

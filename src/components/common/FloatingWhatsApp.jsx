@@ -1,6 +1,6 @@
 export default function FloatingWhatsApp() {
   const whatsappUrl =
-    'https://wa.me/595992574146?text=Hola%20EvoluMind,%20me%20gustar%C3%ADa%20hacer%20una%20consulta%20sobre%20los%20cuadernillos.';
+    'https://wa.me/595981597595?text=Hola%20EvoluMind,%20me%20gustar%C3%ADa%20hacer%20una%20consulta%20sobre%20los%20cuadernillos.';
 
   return (
     <aside aria-label="Contacto directo por WhatsApp">
@@ -9,7 +9,7 @@ export default function FloatingWhatsApp() {
         target="_blank"
         rel="noreferrer"
         className="floating-whatsapp-btn"
-        title="Escríbenos por WhatsApp (+595 992 574 146)"
+        title="Escríbenos por WhatsApp (+595 981 597 595)"
       >
         <span className="floating-whatsapp-tooltip">¿Dudas o consultas? Escríbenos</span>
         <div className="floating-whatsapp-icon-wrap">

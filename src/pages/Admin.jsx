@@ -20,6 +20,8 @@ import {
   Settings,
   Sparkles,
   Trash2,
+  Upload,
+  UploadCloud,
   User,
   X,
 } from 'lucide-react';
@@ -79,6 +81,59 @@ function sanitizePages(rawPages) {
   return `${digits} páginas`;
 }
 
+// Compress and optimize image to keep localStorage light & prevent quota errors
+function processImageFile(file) {
+  if (!file.type.startsWith('image/')) return Promise.resolve(null);
+
+  return new Promise((resolve) => {
+    // If it's SVG, keep as is
+    if (file.type === 'image/svg+xml') {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const maxDim = 1200;
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const isPng = file.type === 'image/png';
+          const format = isPng ? 'image/png' : 'image/webp';
+          const quality = isPng ? 0.85 : 0.82;
+          const dataUrl = canvas.toDataURL(format, quality);
+          resolve(dataUrl);
+        } catch (e) {
+          resolve(event.target?.result);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = event.target?.result;
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function Admin() {
   const [authenticated, setAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
@@ -108,8 +163,11 @@ export default function Admin() {
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [customCategoryValue, setCustomCategoryValue] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const colorInputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('evolumind_admin_auth');
@@ -202,7 +260,37 @@ export default function Admin() {
     showToast(`Cuadernillo marcado como "${nextStatus}"`);
   };
 
-  // Multiple Images Management: Add, Remove, Move Left, Move Right
+  // Local Device Files Upload Handler (Desktop & Mobile)
+  const handleProcessFiles = async (files) => {
+    if (!files || files.length === 0) return;
+    setIsUploadingImages(true);
+    try {
+      const promises = files.map(processImageFile);
+      const results = await Promise.all(promises);
+      const validImages = results.filter(Boolean);
+
+      if (validImages.length > 0) {
+        const currentImages = editingProduct.images || [];
+        setEditingProduct({
+          ...editingProduct,
+          images: [...currentImages, ...validImages],
+        });
+        showToast(`¡${validImages.length} foto(s) agregada(s) con éxito!`);
+      } else {
+        alert('No se pudieron procesar los archivos seleccionados. Asegúrate de elegir imágenes válidas (JPG, PNG, WebP).');
+      }
+    } catch (err) {
+      console.error('Error procesando imágenes:', err);
+      alert('Hubo un error al procesar las fotos del dispositivo.');
+    } finally {
+      setIsUploadingImages(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Multiple Images Management: Add URL, Remove, Move Left, Move Right
   const handleAddImage = () => {
     if (!newImageUrl.trim()) return;
     const currentImages = editingProduct.images || [];
@@ -881,34 +969,77 @@ export default function Admin() {
                     </div>
                   </label>
 
-                  {/* IMÁGENES MÚLTIPLES: AGREGAR, REORDENAR CON < y > Y ELIMINAR */}
+                  {/* IMÁGENES MÚLTIPLES: SUBIR DESDE ESTE DISPOSITIVO, REORDENAR Y ELIMINAR */}
                   <div className="admin-images-section">
-                    <label className="form-field">
-                      <span>Imágenes del Cuadernillo (JPG, WebP, PNG, SVG o URLs)</span>
-                      <div className="add-image-bar">
-                        <input
-                          type="text"
-                          placeholder="Ej: /books/demo/portada.webp o https://..."
-                          value={newImageUrl}
-                          onChange={(e) => setNewImageUrl(e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          className="button secondary small-btn"
-                          onClick={handleAddImage}
-                        >
-                          <Plus size={15} />
-                          Agregar Foto
-                        </button>
+                    <div className="images-section-header">
+                      <span className="images-section-title">
+                        <ImageIcon size={16} /> Fotos del Cuadernillo (Portada y Vistas)
+                      </span>
+                      <span className="images-counter-badge">
+                        {(editingProduct.images || []).length} foto(s)
+                      </span>
+                    </div>
+
+                    {/* INPUT OCULTO QUE ABRE EL SELECTOR NATIVO DE ARCHIVOS / CÁMARA */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/png, image/jpeg, image/webp, image/gif, image/svg+xml"
+                      multiple
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          handleProcessFiles(Array.from(e.target.files));
+                        }
+                      }}
+                    />
+
+                    {/* ZONA DE CARGA CON BOTÓN NATIVO Y ARRASTRE DE ARCHIVOS */}
+                    <div
+                      className={`admin-image-dropzone ${isDragging ? 'dragging' : ''}`}
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragging(true);
+                      }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          handleProcessFiles(Array.from(e.dataTransfer.files));
+                        }
+                      }}
+                    >
+                      <UploadCloud size={32} className="dropzone-icon" />
+                      <div className="dropzone-text">
+                        <strong>
+                          {isUploadingImages
+                            ? 'Procesando y optimizando fotos...'
+                            : 'Toca aquí para seleccionar fotos desde este dispositivo'}
+                        </strong>
+                        <small>Funciona en computadora y celular (JPG, WebP, PNG). La primera foto será la portada.</small>
                       </div>
-                    </label>
+                      <button
+                        type="button"
+                        className="button primary small-btn dropzone-btn"
+                        disabled={isUploadingImages}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
+                      >
+                        <Upload size={15} />
+                        {isUploadingImages ? 'Cargando...' : 'Elegir Fotos'}
+                      </button>
+                    </div>
 
                     {editingProduct.images && editingProduct.images.length > 0 ? (
                       <div className="images-thumbs-grid advanced-gallery-manager">
                         {editingProduct.images.map((url, idx) => {
                           const isCover = idx === 0;
                           return (
-                            <div className={`thumb-item ${isCover ? 'cover-item' : ''}`} key={url + idx}>
+                            <div className={`thumb-item ${isCover ? 'cover-item' : ''}`} key={url.substring(0, 32) + idx}>
                               <img src={url} alt={`Foto ${idx + 1}`} />
                               <span className="thumb-index-tag">
                                 {isCover ? '★ Portada' : `#${idx + 1}`}
@@ -954,6 +1085,27 @@ export default function Admin() {
                         <ImageIcon size={14} /> Si no agregas imágenes, se generará automáticamente la portada vectorial con el color seleccionado.
                       </p>
                     )}
+
+                    {/* OPCIONAL: PEGAR ENLACE DIRECTO O RUTA SI SE DESEA */}
+                    <details className="manual-url-details">
+                      <summary>¿Deseas agregar una imagen mediante enlace web o ruta local?</summary>
+                      <div className="add-image-bar" style={{ marginTop: '0.6rem' }}>
+                        <input
+                          type="text"
+                          placeholder="https://... o /books/demo/..."
+                          value={newImageUrl}
+                          onChange={(e) => setNewImageUrl(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="button secondary small-btn"
+                          onClick={handleAddImage}
+                        >
+                          <Plus size={15} />
+                          Agregar Enlace
+                        </button>
+                      </div>
+                    </details>
                   </div>
 
                   <label className="form-field">

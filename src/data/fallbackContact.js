@@ -2,9 +2,9 @@ export const fallbackContact = [
   {
     id: 'whatsapp',
     label: 'WhatsApp Oficial',
-    value: '+595 992 574 146',
+    value: '+595 981 597 595',
     subtext: 'Atención rápida y consultas de compra',
-    href: 'https://wa.me/595992574146?text=Hola%20EvoluMind,%20me%20gustar%C3%ADa%20hacer%20una%20consulta%20sobre%20los%20cuadernillos%20terap%C3%A9uticos.',
+    href: 'https://wa.me/595981597595?text=Hola%20EvoluMind,%20me%20gustar%C3%ADa%20hacer%20una%20consulta%20sobre%20los%20cuadernillos%20terap%C3%A9uticos.',
     iconName: 'MessageCircle',
     tone: 'mint',
   },
@@ -29,9 +29,9 @@ export const fallbackContact = [
   {
     id: 'correo',
     label: 'Correo Electrónico',
-    value: 'nelsonromerojunior@gmail.com',
+    value: 'evolumindpy@gmail.com',
     subtext: 'Consultas académicas y soporte técnico',
-    href: 'mailto:nelsonromerojunior@gmail.com?subject=Consulta%20EvoluMind',
+    href: 'mailto:evolumindpy@gmail.com?subject=Consulta%20EvoluMind',
     iconName: 'Mail',
     tone: 'night',
   },

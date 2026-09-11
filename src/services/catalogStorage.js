@@ -2,7 +2,7 @@ import { fallbackCatalog } from '../data/fallbackCatalog.js';
 import { fallbackContact } from '../data/fallbackContact.js';
 
 const CATALOG_STORAGE_KEY = 'evolumind_catalog_v2';
-const CONTACT_STORAGE_KEY = 'evolumind_contact_v2';
+const CONTACT_STORAGE_KEY = 'evolumind_contact_v3';
 const THEMES_STORAGE_KEY = 'evolumind_themes_v1';
 const CATEGORIES_STORAGE_KEY = 'evolumind_categories_v1';
 
