@@ -171,6 +171,7 @@ export default function Admin() {
   const [isDragging, setIsDragging] = useState(false);
 
   const fileInputRef = useRef(null);
+  const colorInputRef = useRef(null);
 
   const [firebaseOnline, setFirebaseOnline] = useState(isFirebaseConfigured());
   const [isSavingProduct, setIsSavingProduct] = useState(false);

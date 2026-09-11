@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import PageShell from './components/layout/PageShell.jsx';
+import ErrorBoundary from './components/common/ErrorBoundary.jsx';
 import Admin from './pages/Admin.jsx';
 import Catalog from './pages/Catalog.jsx';
 import Contact from './pages/Contact.jsx';
@@ -53,7 +54,9 @@ export default function App() {
 
   return (
     <PageShell currentPath={path}>
-      <Page />
+      <ErrorBoundary>
+        <Page />
+      </ErrorBoundary>
     </PageShell>
   );
 }
