@@ -2792,7 +2792,7 @@ main {
   }
 }
 
-/* Firebase & Database Cloud Modal Styles */
+/* Firebase Status Badge Styles */
 .admin-header-badge-row {
   display: flex;
   align-items: center;
@@ -2809,8 +2809,8 @@ main {
   font-size: 0.75rem;
   font-weight: 700;
   border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  cursor: default;
+  user-select: none;
 }
 
 .firebase-status-pill.online {
@@ -2818,115 +2818,11 @@ main {
   color: #065f46;
   border-color: #a7f3d0;
 }
-.firebase-status-pill.online:hover {
-  background: #d1fae5;
-}
 
 .firebase-status-pill.offline {
   background: #fffbeb;
   color: #92400e;
   border-color: #fde68a;
 }
-.firebase-status-pill.offline:hover {
-  background: #fef3c7;
-}
 
-.db-config-modal {
-  max-width: 620px;
-  width: 92%;
-  background: white;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
-}
-
-.db-modal-body {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.db-status-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-  padding: 1rem;
-  border-radius: 12px;
-}
-
-.db-status-banner.banner-online {
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  color: #065f46;
-}
-.db-status-banner.banner-online p {
-  margin: 0.25rem 0 0 0;
-  font-size: 0.82rem;
-  color: #047857;
-}
-
-.db-status-banner.banner-offline {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  color: #92400e;
-}
-.db-status-banner.banner-offline p {
-  margin: 0.25rem 0 0 0;
-  font-size: 0.82rem;
-  color: #b45309;
-}
-
-.db-instructions-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 1rem 1.25rem;
-}
-
-.db-instructions-card h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.db-instructions-card ol {
-  margin: 0;
-  padding-left: 1.2rem;
-  font-size: 0.82rem;
-  color: #475569;
-  line-height: 1.5;
-}
-
-.db-instructions-card a {
-  color: var(--color-primary);
-  font-weight: 600;
-  text-decoration: underline;
-}
-
-.db-config-textarea {
-  width: 100%;
-  font-family: monospace;
-  font-size: 0.82rem;
-  padding: 0.75rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #fafafa;
-  resize: vertical;
-}
-
-.db-config-textarea:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  background: white;
-}
-
-.db-modal-actions-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
 
