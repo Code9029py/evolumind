@@ -15,6 +15,38 @@ const fallbackTopicOptions = [
   { value: 'academico', label: 'Consulta académica o institucional' },
 ];
 
+function scrollToContactContainer(smooth = true) {
+  const container = document.querySelector('.contact-panel') || document.getElementById('formulario');
+  if (!container) return;
+
+  const nav = document.querySelector('.navbar');
+  const navHeight = nav ? Math.round(nav.getBoundingClientRect().height + 16) : 84;
+
+  const rect = container.getBoundingClientRect();
+  const containerHeight = rect.height;
+  const viewportHeight = window.innerHeight;
+  const availableHeight = viewportHeight - navHeight;
+
+  let targetScrollY = 0;
+
+  if (containerHeight <= availableHeight) {
+    // Fits completely: center it within the visible area below the navbar
+    const extraSpace = availableHeight - containerHeight;
+    const topMargin = navHeight + Math.round(extraSpace / 2);
+    targetScrollY = window.pageYOffset + rect.top - topMargin;
+  } else {
+    // Taller than viewport: align top just below the sticky navbar with comfortable breathing room
+    targetScrollY = window.pageYOffset + rect.top - (navHeight + 10);
+  }
+
+  targetScrollY = Math.max(0, Math.round(targetScrollY));
+
+  window.scrollTo({
+    top: targetScrollY,
+    behavior: smooth ? 'smooth' : 'auto',
+  });
+}
+
 export default function ContactForm() {
   const [formData, setFormData] = useState({
     name: '',
@@ -50,11 +82,36 @@ export default function ContactForm() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const productParam = params.get('producto');
-    if (productParam) {
-      setFormData((prev) => ({ ...prev, topic: productParam }));
-    }
+    let t1, t2;
+
+    const handleCheckAndScroll = () => {
+      const params = new URLSearchParams(window.location.search);
+      const productParam = params.get('producto');
+      const hasHash = window.location.hash === '#formulario';
+
+      if (productParam) {
+        setFormData((prev) => ({ ...prev, topic: productParam }));
+      }
+
+      if (productParam || hasHash) {
+        t1 = setTimeout(() => {
+          scrollToContactContainer(true);
+        }, 80);
+
+        t2 = setTimeout(() => {
+          scrollToContactContainer(true);
+        }, 320);
+      }
+    };
+
+    handleCheckAndScroll();
+    window.addEventListener('popstate', handleCheckAndScroll);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      window.removeEventListener('popstate', handleCheckAndScroll);
+    };
   }, []);
 
   const combinedTopicOptions = [

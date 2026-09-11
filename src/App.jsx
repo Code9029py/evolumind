@@ -42,7 +42,11 @@ export default function App() {
       event.preventDefault();
       window.history.pushState({}, '', href);
       handleNavigation();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (!href.includes('#') && !href.includes('producto=')) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.dispatchEvent(new Event('popstate'));
+      }
     };
 
     document.addEventListener('click', handleClick);

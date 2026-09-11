@@ -211,7 +211,7 @@ export default function ProductDetailDialog({ product, onClose, isPreview = fals
                   <MessageCircle size={18} />
                   {isAvailable ? `Solicitar por WhatsApp (${product.price})` : 'Consultar por WhatsApp'}
                 </a>
-                <a className="button ghost" href={`/contacto?producto=${product.id}`} onClick={onClose}>
+                <a className="button ghost" href={`/contacto?producto=${product.id}#formulario`} onClick={onClose}>
                   <Send size={18} />
                   Consultar por Formulario
                 </a>
