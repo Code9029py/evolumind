@@ -96,27 +96,30 @@ export default function ProductDetailDialog({ product, onClose }) {
                   ))}
                 </div>
               )}
-
-              <div className="dialog-quick-specs">
-                <div className="spec-card">
-                  <small>Inversión</small>
-                  <strong>{product.price}</strong>
-                </div>
-                <div className="spec-card">
-                  <small>Formato</small>
-                  <strong>{product.format || 'PDF Digital'}</strong>
-                </div>
-                <div className="spec-card">
-                  <small>Extensión</small>
-                  <strong>{product.pages || '40+ págs'}</strong>
-                </div>
-              </div>
             </div>
 
             <div className="dialog-right-col">
               <div className="dialog-header">
                 <span className="eyebrow">{product.category}</span>
                 <h2 id="product-dialog-title">{product.title}</h2>
+              </div>
+
+              {/* BARRA ELEGANTE Y PROPORCIONADA DE METADATOS Y PRECIO */}
+              <div className="dialog-specs-banner">
+                <div className="dialog-spec-item price-spec">
+                  <span className="spec-label">Inversión</span>
+                  <strong className="spec-value price">{product.price}</strong>
+                </div>
+                <div className="dialog-spec-sep" />
+                <div className="dialog-spec-item">
+                  <span className="spec-label">Formato</span>
+                  <strong className="spec-value">{product.format || 'PDF interactivo'}</strong>
+                </div>
+                <div className="dialog-spec-sep" />
+                <div className="dialog-spec-item">
+                  <span className="spec-label">Extensión</span>
+                  <strong className="spec-value">{product.pages || '40+ págs'}</strong>
+                </div>
               </div>
 
               <p className="dialog-description">{product.longDescription}</p>
