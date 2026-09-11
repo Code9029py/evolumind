@@ -214,6 +214,7 @@ export default function ProductDetailDialog({ product, onClose, isPreview = fals
         onIndexChange={setSelectedImgIndex}
         onClose={() => setIsZoomOpen(false)}
         title={product.title}
+        backdropColor={product.lightboxBg === 'accent' ? product.accent : product.lightboxBg}
       />
     </div>
   );

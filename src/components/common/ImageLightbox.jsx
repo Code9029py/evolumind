@@ -1,6 +1,24 @@
 import { useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
+function formatBackdropColor(color) {
+  if (!color || color === 'default') return undefined;
+  if (color.startsWith('rgba') || color.startsWith('rgb')) return color;
+  if (color.startsWith('#')) {
+    let hex = color.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex.split('').map((c) => c + c).join('');
+    }
+    if (hex.length === 6) {
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, 0.94)`;
+    }
+  }
+  return color;
+}
+
 /**
  * Full-screen responsive image lightbox modal for inspecting booklet covers in high resolution.
  */
@@ -38,6 +56,7 @@ export default function ImageLightbox({
   if (!isOpen || images.length === 0) return null;
 
   const currentUrl = images[currentIndex] || images[0];
+  const computedBg = formatBackdropColor(backdropColor);
 
   const handlePrev = (e) => {
     e.stopPropagation();
@@ -56,7 +75,7 @@ export default function ImageLightbox({
   return (
     <div
       className="image-lightbox-overlay"
-      style={backdropColor ? { '--lightbox-bg': backdropColor } : undefined}
+      style={computedBg ? { '--lightbox-bg': computedBg } : undefined}
       role="dialog"
       aria-modal="true"
       aria-label={`Vista ampliada: ${title || 'Portada'}`}

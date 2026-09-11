@@ -49,6 +49,12 @@ const COLOR_PRESETS = [
   { name: 'Ámbar Energético', value: '#d97706' },
 ];
 
+const LIGHTBOX_BG_PRESETS = [
+  { name: 'Negro Puro', value: '#000000' },
+  { name: 'Gris Grafito', value: '#1e293b' },
+  { name: 'Azul Medianoche', value: '#07134f' },
+];
+
 const initialProductForm = {
   id: '',
   title: '',
@@ -63,6 +69,7 @@ const initialProductForm = {
   format: 'PDF interactivo',
   featured: false,
   accent: '#0057d9',
+  lightboxBg: 'default',
   images: [],
   imageUrl: '',
 };
@@ -175,6 +182,7 @@ export default function Admin() {
 
   const fileInputRef = useRef(null);
   const colorInputRef = useRef(null);
+  const lightboxColorInputRef = useRef(null);
 
   const [firebaseOnline, setFirebaseOnline] = useState(isFirebaseConfigured());
   const [isSavingProduct, setIsSavingProduct] = useState(false);
@@ -286,6 +294,7 @@ export default function Admin() {
       status: commercialStatus,
       wasHidden: isHidden,
       images: imgList,
+      lightboxBg: product.lightboxBg || 'default',
     });
   };
 
@@ -1069,6 +1078,115 @@ export default function Admin() {
                           value={editingProduct.accent || '#0057d9'}
                           onChange={(e) =>
                             setEditingProduct({ ...editingProduct, accent: e.target.value })
+                          }
+                          className="hidden-color-input"
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* COLOR DE FONDO AL AMPLIAR (LIGHTBOX) */}
+                  <div className="color-picker-box" style={{ marginTop: '0.75rem' }}>
+                    <div className="color-picker-label" style={{ justifyContent: 'space-between', width: '100%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                        <Maximize2 size={15} />
+                        <span>Fondo al Ampliar Imagen (Pantalla Completa)</span>
+                      </div>
+                      <span style={{ fontSize: '0.74rem', color: 'var(--color-muted)', fontWeight: 600 }}>
+                        {(!editingProduct.lightboxBg || editingProduct.lightboxBg === 'default')
+                          ? 'Predeterminado (Oscuro)'
+                          : editingProduct.lightboxBg === 'accent'
+                          ? 'Mismo de la Portada'
+                          : editingProduct.lightboxBg}
+                      </span>
+                    </div>
+
+                    <div className="color-swatches-row">
+                      {/* Opción Predeterminada (Obsidiana con degradado) */}
+                      <button
+                        type="button"
+                        className={`color-swatch-btn ${
+                          !editingProduct.lightboxBg || editingProduct.lightboxBg === 'default'
+                            ? 'active-swatch'
+                            : ''
+                        }`}
+                        style={{
+                          background: 'linear-gradient(135deg, #060a18 0%, #162038 100%)',
+                          border: '2px solid rgba(255, 255, 255, 0.5)',
+                        }}
+                        onClick={() =>
+                          setEditingProduct({ ...editingProduct, lightboxBg: 'default' })
+                        }
+                        title="Predeterminado (Oscuro Obsidiana con desenfoque)"
+                      >
+                        {(!editingProduct.lightboxBg || editingProduct.lightboxBg === 'default') && (
+                          <Check size={14} color="#fff" />
+                        )}
+                      </button>
+
+                      {/* Presets específicos */}
+                      {LIGHTBOX_BG_PRESETS.map((preset) => (
+                        <button
+                          key={preset.value}
+                          type="button"
+                          className={`color-swatch-btn ${
+                            editingProduct.lightboxBg === preset.value ? 'active-swatch' : ''
+                          }`}
+                          style={{
+                            backgroundColor: preset.value,
+                            border: preset.value === '#000000' ? '2px solid #475569' : '2.5px solid white',
+                          }}
+                          onClick={() =>
+                            setEditingProduct({ ...editingProduct, lightboxBg: preset.value })
+                          }
+                          title={preset.name}
+                        >
+                          {editingProduct.lightboxBg === preset.value && (
+                            <Check size={14} color="#fff" />
+                          )}
+                        </button>
+                      ))}
+
+                      {/* Opción Mismo de la Portada */}
+                      <button
+                        type="button"
+                        className={`color-swatch-btn ${
+                          editingProduct.lightboxBg === 'accent' ? 'active-swatch' : ''
+                        }`}
+                        style={{
+                          backgroundColor: editingProduct.accent || '#0057d9',
+                        }}
+                        onClick={() =>
+                          setEditingProduct({ ...editingProduct, lightboxBg: 'accent' })
+                        }
+                        title="Mismo color que la portada"
+                      >
+                        {editingProduct.lightboxBg === 'accent' && <Check size={14} color="#fff" />}
+                      </button>
+
+                      {/* Botón Personalizado con cuentagotas */}
+                      <button
+                        type="button"
+                        className="custom-color-picker-btn"
+                        onClick={() => lightboxColorInputRef.current?.click()}
+                        title="Seleccionar color de fondo de ampliación personalizado..."
+                      >
+                        <Pipette size={14} />
+                        <span>Personalizado</span>
+                        <input
+                          ref={lightboxColorInputRef}
+                          type="color"
+                          value={
+                            editingProduct.lightboxBg &&
+                            editingProduct.lightboxBg.startsWith('#')
+                              ? editingProduct.lightboxBg
+                              : '#060a18'
+                          }
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              lightboxBg: e.target.value,
+                            })
                           }
                           className="hidden-color-input"
                         />

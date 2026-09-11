@@ -176,6 +176,7 @@ export default function ProductCard({ product, onView }) {
         onIndexChange={setCurrentImgIndex}
         onClose={() => setIsZoomOpen(false)}
         title={product.title}
+        backdropColor={product.lightboxBg === 'accent' ? product.accent : product.lightboxBg}
       />
     </article>
   );
