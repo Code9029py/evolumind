@@ -224,7 +224,7 @@ export default function Admin() {
       sessionStorage.setItem('evolumind_admin_auth', 'true');
       setAuthError('');
     } else {
-      setAuthError('Credenciales incorrectas. (Usuario: admin | Clave: admin)');
+      setAuthError('Usuario o contraseña incorrectos.');
     }
   };
 
@@ -520,7 +520,7 @@ export default function Admin() {
                 <User size={18} />
                 <input
                   type="text"
-                  placeholder="admin"
+                  placeholder="Ingresa tu usuario"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   autoFocus
@@ -1120,7 +1120,7 @@ export default function Admin() {
                       <div className="add-image-bar" style={{ marginTop: '0.6rem' }}>
                         <input
                           type="text"
-                          placeholder="https://... o /books/demo/..."
+                          placeholder="https://... o pega el enlace directo de la foto"
                           value={newImageUrl}
                           onChange={(e) => setNewImageUrl(e.target.value)}
                         />
