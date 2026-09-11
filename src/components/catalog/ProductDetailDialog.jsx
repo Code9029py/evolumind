@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, Send, Sparkles, X } from 'lucide-react';
+import { Maximize2, MessageCircle, Send, Sparkles, X } from 'lucide-react';
+import ImageLightbox from '../common/ImageLightbox.jsx';
 
 export default function ProductDetailDialog({ product, onClose, isPreview = false }) {
   const [selectedImgIndex, setSelectedImgIndex] = useState(0);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
 
   useEffect(() => {
     if (!product) return;
@@ -10,7 +12,11 @@ export default function ProductDetailDialog({ product, onClose, isPreview = fals
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        onClose();
+        if (isZoomOpen) {
+          setIsZoomOpen(false);
+        } else {
+          onClose();
+        }
       }
     };
 
@@ -21,7 +27,7 @@ export default function ProductDetailDialog({ product, onClose, isPreview = fals
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [product, onClose]);
+  }, [product, onClose, isZoomOpen]);
 
   if (!product) return null;
 
@@ -65,9 +71,21 @@ export default function ProductDetailDialog({ product, onClose, isPreview = fals
         <div className="product-dialog-body">
           <div className="dialog-top-grid">
             <div className="dialog-left-col">
-              <div className="product-art dialog-art" style={{ '--accent': product.accent || '#0057d9' }}>
+              <div
+                className="product-art dialog-art interactive-art"
+                style={{ '--accent': product.accent || '#0057d9' }}
+                onClick={() => currentImage && setIsZoomOpen(true)}
+                title={currentImage ? 'Clic para ampliar a pantalla completa' : undefined}
+              >
                 {currentImage ? (
-                  <img src={currentImage} alt={product.title} className="product-cover-img" />
+                  <>
+                    <img src={currentImage} alt="" className="product-art-backdrop" aria-hidden="true" />
+                    <img src={currentImage} alt={product.title} className="product-cover-img" />
+                    <div className="zoom-hint-pill">
+                      <Maximize2 size={13} />
+                      <span>Ampliar</span>
+                    </div>
+                  </>
                 ) : (
                   <div className="product-book-visual dialog-book-visual">
                     <div className="book-spine" />
@@ -188,6 +206,15 @@ export default function ProductDetailDialog({ product, onClose, isPreview = fals
           </div>
         </div>
       </section>
+
+      <ImageLightbox
+        isOpen={isZoomOpen}
+        images={imagesList}
+        currentIndex={selectedImgIndex}
+        onIndexChange={setSelectedImgIndex}
+        onClose={() => setIsZoomOpen(false)}
+        title={product.title}
+      />
     </div>
   );
 }

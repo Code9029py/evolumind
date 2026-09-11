@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Eye, MessageCircle, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, Maximize2, MessageCircle, Sparkles } from 'lucide-react';
+import ImageLightbox from '../common/ImageLightbox.jsx';
 
 export default function ProductCard({ product, onView }) {
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
   const isSoon = product.status === 'próximamente';
   const isOut = product.status === 'agotado';
   const isAvailable = product.status === 'disponible' || (!isSoon && !isOut && product.status !== 'oculto');
@@ -60,7 +62,22 @@ export default function ProductCard({ product, onView }) {
         title="Clic para ver detalle completo"
       >
         {currentImage ? (
-          <img src={currentImage} alt={product.title} className="product-cover-img" loading="lazy" />
+          <>
+            <img src={currentImage} alt="" className="product-art-backdrop" aria-hidden="true" />
+            <img src={currentImage} alt={product.title} className="product-cover-img" loading="lazy" />
+            <button
+              type="button"
+              className="card-quick-zoom-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsZoomOpen(true);
+              }}
+              title="Ampliar portada a pantalla completa"
+              aria-label="Ampliar portada"
+            >
+              <Maximize2 size={15} />
+            </button>
+          </>
         ) : (
           <div className="product-book-visual">
             <div className="book-spine" />
@@ -151,6 +168,15 @@ export default function ProductCard({ product, onView }) {
           {isAvailable ? 'Solicitar' : 'Consultar'}
         </a>
       </div>
+
+      <ImageLightbox
+        isOpen={isZoomOpen}
+        images={imagesList}
+        currentIndex={currentImgIndex}
+        onIndexChange={setCurrentImgIndex}
+        onClose={() => setIsZoomOpen(false)}
+        title={product.title}
+      />
     </article>
   );
 }

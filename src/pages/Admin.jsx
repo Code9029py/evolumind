@@ -105,7 +105,7 @@ function processImageFile(file) {
       const img = new Image();
       img.onload = () => {
         try {
-          const maxDim = 1200;
+          const maxDim = 1400;
           let { width, height } = img;
           if (width > maxDim || height > maxDim) {
             if (width > height) {
@@ -120,11 +120,13 @@ function processImageFile(file) {
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
           ctx.drawImage(img, 0, 0, width, height);
 
           const isPng = file.type === 'image/png';
           const format = isPng ? 'image/png' : 'image/webp';
-          const quality = isPng ? 0.85 : 0.82;
+          const quality = isPng ? 0.90 : 0.88;
           const dataUrl = canvas.toDataURL(format, quality);
           resolve(dataUrl);
         } catch (e) {
@@ -1309,14 +1311,25 @@ export default function Admin() {
                         title="Clic para previsualizar modal completo"
                       >
                         {livePreviewProduct?.images && livePreviewProduct.images.length > 0 ? (
-                          <img
-                            src={
-                              livePreviewProduct.images[previewImgIndex] ||
-                              livePreviewProduct.images[0]
-                            }
-                            alt={livePreviewProduct?.title}
-                            className="product-cover-img"
-                          />
+                          <>
+                            <img
+                              src={
+                                livePreviewProduct.images[previewImgIndex] ||
+                                livePreviewProduct.images[0]
+                              }
+                              alt=""
+                              className="product-art-backdrop"
+                              aria-hidden="true"
+                            />
+                            <img
+                              src={
+                                livePreviewProduct.images[previewImgIndex] ||
+                                livePreviewProduct.images[0]
+                              }
+                              alt={livePreviewProduct?.title}
+                              className="product-cover-img"
+                            />
+                          </>
                         ) : (
                           <div className="product-book-visual">
                             <div className="book-spine" />
