@@ -10,12 +10,13 @@ export default function ProductCard({ product, onView }) {
   const statusLabel = isAvailable ? 'Disponible' : isOut ? 'Sin Stock' : 'Próximamente';
   const statusClass = isAvailable ? 'available' : isOut ? 'out' : 'soon';
 
-  const imagesList =
+  const imagesList = (
     Array.isArray(product.images) && product.images.length > 0
       ? product.images
       : product.imageUrl
       ? [product.imageUrl]
-      : [];
+      : []
+  ).filter(Boolean);
 
   const currentImage = imagesList[currentImgIndex] || imagesList[0];
 

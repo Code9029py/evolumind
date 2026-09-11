@@ -25,12 +25,13 @@ export default function ProductDetailDialog({ product, onClose }) {
 
   if (!product) return null;
 
-  const imagesList =
+  const imagesList = (
     Array.isArray(product.images) && product.images.length > 0
       ? product.images
       : product.imageUrl
       ? [product.imageUrl]
-      : [];
+      : []
+  ).filter(Boolean);
 
   const currentImage = imagesList[selectedImgIndex] || imagesList[0];
 

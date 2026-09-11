@@ -266,16 +266,25 @@ export default function Admin() {
       ? [product.imageUrl]
       : [];
 
+    const isHidden = product.status === 'oculto';
+    const commercialStatus = isHidden ? (product.previousStatus || 'disponible') : (product.status || 'disponible');
+
     setEditingProduct({
       ...product,
+      status: commercialStatus,
+      wasHidden: isHidden,
       images: imgList,
     });
   };
 
   const handleToggleVisibility = async (product) => {
     const isCurrentlyHidden = product.status === 'oculto';
-    const nextStatus = isCurrentlyHidden ? 'disponible' : 'oculto';
-    const updated = { ...product, status: nextStatus };
+    const nextStatus = isCurrentlyHidden ? (product.previousStatus || 'disponible') : 'oculto';
+    const updated = {
+      ...product,
+      status: nextStatus,
+      previousStatus: isCurrentlyHidden ? product.previousStatus : (product.status || 'disponible'),
+    };
     await saveProductOnline(updated);
     showToast(isCurrentlyHidden ? 'Cuadernillo visible en catálogo' : 'Cuadernillo ocultado del catálogo');
   };
@@ -423,6 +432,9 @@ export default function Admin() {
     const formattedPrice = sanitizePrice(editingProduct.price) || '50.000 Gs.';
     const formattedPages = sanitizePages(editingProduct.pages) || '40 páginas';
 
+    const finalCommercialStatus = editingProduct.status || 'disponible';
+    const isCurrentlyHidden = Boolean(editingProduct.wasHidden);
+
     const updatedProduct = {
       ...editingProduct,
       title: editingProduct.title.trim(),
@@ -431,9 +443,12 @@ export default function Admin() {
       price: formattedPrice,
       pages: formattedPages,
       format: editingProduct.format?.trim() || 'PDF interactivo',
+      status: isCurrentlyHidden ? 'oculto' : finalCommercialStatus,
+      previousStatus: isCurrentlyHidden ? finalCommercialStatus : undefined,
       images: finalImages,
       imageUrl: primaryImage,
     };
+    delete updatedProduct.wasHidden;
 
     setIsSavingProduct(true);
     try {
@@ -464,7 +479,7 @@ export default function Admin() {
   const handleRestore = async (id) => {
     const product = products.find((p) => p.id === id);
     if (product) {
-      await saveProductOnline({ ...product, status: 'disponible' });
+      await saveProductOnline({ ...product, status: product.previousStatus || 'disponible' });
       showToast('Cuadernillo restaurado al catálogo activo');
     }
   };
@@ -960,8 +975,12 @@ export default function Admin() {
                         <option value="disponible">✅ Disponible (A la venta)</option>
                         <option value="próximamente">⏳ Próximamente (Próximo lanzamiento)</option>
                         <option value="agotado">⛔ Sin Stock / Agotado</option>
-                        <option value="oculto">👁️ Oculto (Solo visible en administrador)</option>
                       </select>
+                      {editingProduct.wasHidden && (
+                        <small style={{ color: '#b45309', fontSize: '0.75rem', marginTop: '0.35rem', display: 'block' }}>
+                          🔒 Actualmente oculto. Puedes volver a mostrarlo en la tienda usando el botón "Mostrar" de la lista.
+                        </small>
+                      )}
                     </label>
                   </div>
 
