@@ -935,7 +935,7 @@ export default function Admin() {
                     </label>
                   </div>
 
-                  <div className="form-row">
+                  <div className="form-row form-row-3">
                     <label className="form-field">
                       <span>Extensión (Páginas)</span>
                       <input
@@ -1359,7 +1359,7 @@ export default function Admin() {
                               {livePreviewProduct?.price}
                             </strong>
                           </div>
-                          <span className="product-format-badge">100% Digital</span>
+                          <span className="product-format-badge">{livePreviewProduct?.format || '100% Digital'}</span>
                         </div>
                       </div>
 

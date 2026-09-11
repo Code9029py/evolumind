@@ -129,7 +129,7 @@ export default function ProductCard({ product, onView }) {
             <span className="price-label">Precio</span>
             <strong className="product-price">{product.price}</strong>
           </div>
-          <span className="product-format-badge">100% Digital</span>
+          <span className="product-format-badge">{product.format || '100% Digital'}</span>
         </div>
       </div>
 
