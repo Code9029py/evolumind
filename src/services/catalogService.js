@@ -82,24 +82,49 @@ export function subscribeCatalog(onData, onError) {
 }
 
 /**
+ * Recursively cleans any undefined properties from an object before
+ * saving to Firestore, preventing "Unsupported field value: undefined" errors.
+ */
+function sanitizeForFirestore(obj) {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj
+      .filter((item) => item !== undefined)
+      .map((item) => sanitizeForFirestore(item));
+  }
+
+  const clean = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      clean[key] = sanitizeForFirestore(value);
+    }
+  }
+  return clean;
+}
+
+/**
  * Save or update a product online in Firestore and local storage.
  */
 export async function saveProductOnline(product) {
   const db = getDb();
+  const safeProduct = sanitizeForFirestore(product);
 
   // Save to local storage first
   const currentCatalog = getStoredCatalog();
-  const exists = currentCatalog.some((p) => p.id === product.id);
+  const exists = currentCatalog.some((p) => p.id === safeProduct.id);
   const updatedCatalog = exists
-    ? currentCatalog.map((p) => (p.id === product.id ? product : p))
-    : [product, ...currentCatalog];
+    ? currentCatalog.map((p) => (p.id === safeProduct.id ? safeProduct : p))
+    : [safeProduct, ...currentCatalog];
   saveStoredCatalog(updatedCatalog);
 
   // If Firebase is ready, persist online
   if (db && isFirebaseConfigured()) {
     try {
-      const docRef = doc(db, CATALOG_COLLECTION, product.id);
-      await setDoc(docRef, product, { merge: true });
+      const docRef = doc(db, CATALOG_COLLECTION, safeProduct.id);
+      await setDoc(docRef, safeProduct, { merge: true });
       return { success: true, online: true };
     } catch (error) {
       console.error('Error saving product to Firestore:', error);

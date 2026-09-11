@@ -293,10 +293,21 @@ export default function Admin() {
     const updated = {
       ...product,
       status: nextStatus,
-      previousStatus: isCurrentlyHidden ? product.previousStatus : (product.status || 'disponible'),
     };
-    await saveProductOnline(updated);
-    showToast(isCurrentlyHidden ? 'Cuadernillo visible en catálogo' : 'Cuadernillo ocultado del catálogo');
+    if (!isCurrentlyHidden) {
+      updated.previousStatus = product.status || 'disponible';
+    } else if (product.previousStatus) {
+      updated.previousStatus = product.previousStatus;
+    } else {
+      delete updated.previousStatus;
+    }
+
+    const res = await saveProductOnline(updated);
+    if (res && !res.success && res.error) {
+      showToast('Error al actualizar visibilidad en Firebase');
+    } else {
+      showToast(isCurrentlyHidden ? 'Cuadernillo visible en catálogo' : 'Cuadernillo ocultado del catálogo');
+    }
   };
 
   // Local Device Files Upload Handler (Desktop & Mobile)
@@ -454,10 +465,17 @@ export default function Admin() {
       pages: formattedPages,
       format: editingProduct.format?.trim() || 'PDF interactivo',
       status: isCurrentlyHidden ? 'oculto' : finalCommercialStatus,
-      previousStatus: isCurrentlyHidden ? finalCommercialStatus : undefined,
       images: finalImages,
       imageUrl: primaryImage,
     };
+
+    if (isCurrentlyHidden) {
+      updatedProduct.previousStatus = finalCommercialStatus;
+    } else if (editingProduct.previousStatus) {
+      updatedProduct.previousStatus = editingProduct.previousStatus;
+    } else {
+      delete updatedProduct.previousStatus;
+    }
     delete updatedProduct.wasHidden;
 
     setIsSavingProduct(true);
@@ -466,8 +484,12 @@ export default function Admin() {
       setEditingProduct(null);
       if (res && res.online) {
         showToast(isNew ? '¡Nuevo cuadernillo publicado en la nube!' : '¡Cambios sincronizados en línea!');
+      } else if (res && !res.success && res.error) {
+        console.error('Error guardando en Firebase:', res.error);
+        showToast('Error al sincronizar con Firebase: ' + (res.error.message || 'Error'));
+        alert('Atención: Los cambios se guardaron localmente pero falló la sincronización con Firebase:\n' + (res.error.message || 'Verifica la consola'));
       } else {
-        showToast(isNew ? '¡Nuevo cuadernillo publicado!' : '¡Cambios guardados con éxito!');
+        showToast(isNew ? '¡Nuevo cuadernillo guardado!' : '¡Cambios guardados con éxito!');
       }
     } catch (err) {
       console.error('Error guardando:', err);
