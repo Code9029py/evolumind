@@ -1,11 +1,26 @@
 import { BookDashed, RotateCcw } from 'lucide-react';
 import ProductCard from './ProductCard.jsx';
+import LoadingSpinner from '../common/LoadingSpinner.jsx';
 
-export default function CatalogGrid({ products, onView, onReset }) {
+export default function CatalogGrid({ products = [], onView, onReset, loading = false }) {
+  if (loading) {
+    return (
+      <LoadingSpinner
+        size="lg"
+        message="Cargando catálogo de cuadernillos..."
+        submessage="Conectando con EvoluMind en tiempo real"
+        withIcon
+        minHeight="340px"
+      />
+    );
+  }
+
   if (products.length === 0) {
     return (
       <div className="catalog-empty-state">
-        <BookDashed size={48} />
+        <div className="catalog-empty-icon" aria-hidden="true">
+          <BookDashed size={32} />
+        </div>
         <h3>No se encontraron cuadernillos</h3>
         <p>No hay resultados que coincidan con los filtros o término de búsqueda aplicado.</p>
         {onReset && (
@@ -26,3 +41,4 @@ export default function CatalogGrid({ products, onView, onReset }) {
     </div>
   );
 }
+

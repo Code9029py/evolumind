@@ -1,12 +1,22 @@
 import { BookOpen, Sparkles } from 'lucide-react';
 import SectionHeader from '../common/SectionHeader.jsx';
 import ProductCard from '../catalog/ProductCard.jsx';
+import LoadingSpinner from '../common/LoadingSpinner.jsx';
 
 export default function FeaturedCatalogSection({
   products = [],
+  loading = false,
   onViewProduct,
   onOrderProduct,
 }) {
+  if (loading) {
+    return (
+      <section className="section featured-catalog-section" id="cuadernillos">
+        <LoadingSpinner message="Cargando cuadernillos destacados..." minHeight="220px" />
+      </section>
+    );
+  }
+
   const featured = products
     .filter((product) => product.featured)
     .slice(0, 3);

@@ -3075,4 +3075,255 @@ main {
   border-color: #fde68a;
 }
 
+/* ==========================================================================
+   RESPONSIVE LOADING SPINNER & EMPTY STATE STYLES
+   ========================================================================== */
+
+.loading-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: clamp(2rem, 5vw, 4rem) 1.5rem;
+  width: 100%;
+  min-height: 280px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  transition: all 0.3s ease;
+  animation: fadeInSpinner 0.3s ease-out;
+}
+
+@keyframes fadeInSpinner {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loading-spinner-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Outer circular spinning gradient ring */
+.spinner-circle-ring {
+  border-radius: 50%;
+  border-style: solid;
+  border-color: rgba(0, 87, 217, 0.15);
+  border-top-color: var(--color-primary);
+  border-right-color: var(--color-cyan);
+  animation: spinRing 0.85s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  will-change: transform;
+}
+
+@keyframes spinRing {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Spinner Sizes */
+.spinner-size-sm .spinner-circle-ring {
+  width: 28px;
+  height: 28px;
+  border-width: 3px;
+}
+
+.spinner-size-md .spinner-circle-ring {
+  width: 52px;
+  height: 52px;
+  border-width: 4px;
+}
+
+.spinner-size-lg .spinner-circle-ring {
+  width: 72px;
+  height: 72px;
+  border-width: 5px;
+}
+
+.spinner-center-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  animation: pulseIcon 1.8s ease-in-out infinite;
+}
+
+@keyframes pulseIcon {
+  0%, 100% {
+    transform: scale(0.9);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+.loading-spinner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 420px;
+}
+
+.loading-spinner-message {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  font-weight: 800;
+  color: var(--color-night);
+  line-height: 1.35;
+}
+
+.loading-spinner-submessage {
+  font-size: clamp(0.82rem, 2vw, 0.92rem);
+  color: var(--color-muted);
+  line-height: 1.45;
+}
+
+/* Inline Spinner for Buttons / Badges */
+.spinner-inline-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.spinner-inline-wrap .spinner-circle-ring {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: currentColor;
+  border-right-color: currentColor;
+}
+
+.spinner-inline-wrap.spinner-sm .spinner-circle-ring {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+.spinner-inline-wrap.spinner-md .spinner-circle-ring {
+  width: 18px;
+  height: 18px;
+  border-width: 2.5px;
+}
+
+.spinner-inline-wrap.spinner-lg .spinner-circle-ring {
+  width: 22px;
+  height: 22px;
+  border-width: 3px;
+}
+
+.spinner-inline-text {
+  font-weight: 700;
+  font-size: inherit;
+}
+
+/* Status Bar Loading Indicator */
+.catalog-counter.is-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.loading-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  animation: pulseDot 1.4s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    transform: scale(0.7);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* Catalog Empty State Styling */
+.catalog-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(2.5rem, 6vw, 4.5rem) 1.5rem;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px dashed rgba(0, 87, 217, 0.22);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+  gap: 0.85rem;
+  animation: fadeInSpinner 0.25s ease-out;
+}
+
+.catalog-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  margin-bottom: 0.4rem;
+}
+
+.catalog-empty-state h3 {
+  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  font-weight: 900;
+  color: var(--color-night);
+}
+
+.catalog-empty-state p {
+  color: var(--color-muted);
+  font-size: clamp(0.88rem, 2vw, 0.98rem);
+  max-width: 440px;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+/* Mobile Responsiveness Adjustments */
+@media (max-width: 640px) {
+  .loading-spinner-container {
+    min-height: 220px;
+    padding: 2rem 1rem;
+    gap: 1rem;
+  }
+
+  .catalog-empty-state {
+    padding: 2rem 1rem;
+  }
+
+  .catalog-empty-icon {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+
 

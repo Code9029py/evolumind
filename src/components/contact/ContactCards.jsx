@@ -1,4 +1,5 @@
 import { Camera, ExternalLink, Mail, MessageCircle, Share2, Sparkles } from 'lucide-react';
+import LoadingSpinner from '../common/LoadingSpinner.jsx';
 
 const iconMap = {
   MessageCircle,
@@ -7,7 +8,19 @@ const iconMap = {
   Mail,
 };
 
-export default function ContactCards({ channels }) {
+export default function ContactCards({ channels = [], loading = false }) {
+  if (loading) {
+    return (
+      <section className="section contact-grid-section">
+        <LoadingSpinner
+          size="md"
+          message="Cargando canales de contacto..."
+          minHeight="180px"
+        />
+      </section>
+    );
+  }
+
   return (
     <section className="section contact-grid-section">
       <div className="contact-grid">

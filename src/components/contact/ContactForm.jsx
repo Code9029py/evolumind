@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Clock, Mail, MessageSquare, RotateCcw, ShieldCheck } from 'lucide-react';
 import { subscribeCatalog } from '../../services/catalogService.js';
+import { getStoredCatalog } from '../../services/catalogStorage.js';
+import LoadingSpinner from '../common/LoadingSpinner.jsx';
 
 const fallbackTopicOptions = [
   { value: 'ansiedad', label: 'Cuadernillo de Ansiedad (50.000 Gs.)' },
@@ -23,14 +25,25 @@ export default function ContactForm() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [submittedSummary, setSubmittedSummary] = useState(null);
-  const [catalogProducts, setCatalogProducts] = useState([]);
+  const [catalogProducts, setCatalogProducts] = useState(() => {
+    const stored = getStoredCatalog();
+    return Array.isArray(stored) ? stored.filter((p) => p.status !== 'eliminado' && p.status !== 'oculto') : [];
+  });
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const unsub = subscribeCatalog((items) => {
-      if (Array.isArray(items)) {
-        setCatalogProducts(items.filter((p) => p.status !== 'eliminado' && p.status !== 'oculto'));
+    const unsub = subscribeCatalog(
+      (items) => {
+        if (Array.isArray(items)) {
+          setCatalogProducts(items.filter((p) => p.status !== 'eliminado' && p.status !== 'oculto'));
+        }
+        setIsLoadingProducts(false);
+      },
+      () => {
+        setIsLoadingProducts(false);
       }
-    });
+    );
     return () => {
       if (typeof unsub === 'function') unsub();
     };
@@ -68,8 +81,12 @@ export default function ContactForm() {
       return;
     }
 
-    setSubmittedSummary({ ...formData });
-    setSubmitted(true);
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setSubmittedSummary({ ...formData });
+      setSubmitted(true);
+      setIsSubmitting(false);
+    }, 450);
   };
 
   const handleReset = () => {
@@ -168,7 +185,11 @@ export default function ContactForm() {
                 <label>
                   <span>Tema de tu consulta</span>
                   <select name="topic" value={formData.topic} onChange={handleChange}>
-                    <option value="">Selecciona un tema o cuadernillo...</option>
+                    <option value="">
+                      {isLoadingProducts && catalogProducts.length === 0
+                        ? 'Cargando temas y cuadernillos...'
+                        : 'Selecciona un tema o cuadernillo...'}
+                    </option>
                     {combinedTopicOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
@@ -194,9 +215,15 @@ export default function ContactForm() {
               </label>
 
               <div className="form-buttons-group">
-                <button className="button primary full-width" type="submit">
-                  <Mail size={18} />
-                  Enviar Consulta por Correo
+                <button className="button primary full-width" type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <LoadingSpinner inline size="sm" message="Enviando consulta..." />
+                  ) : (
+                    <>
+                      <Mail size={18} />
+                      Enviar Consulta por Correo
+                    </>
+                  )}
                 </button>
               </div>
             </form>

@@ -8,15 +8,23 @@ import { subscribeCatalog } from '../services/catalogService.js';
 
 export default function Catalog() {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [theme, setTheme] = useState('todos');
   const [status, setStatus] = useState('todos');
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = subscribeCatalog((newProducts) => {
-      setProducts(newProducts);
-    });
+    const unsubscribe = subscribeCatalog(
+      (newProducts) => {
+        setProducts(newProducts);
+        setLoading(false);
+      },
+      (error) => {
+        console.warn('Error al cargar catálogo:', error);
+        setLoading(false);
+      }
+    );
 
     // Parse URL params if present
     const params = new URLSearchParams(window.location.search);
@@ -97,10 +105,17 @@ export default function Catalog() {
         />
 
         <div className="catalog-status-bar">
-          <span className="catalog-counter">
-            Mostrando <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'cuadernillo' : 'cuadernillos'}
-          </span>
-          {hasActiveFilters && (
+          {loading ? (
+            <span className="catalog-counter is-loading">
+              <span className="loading-pulse-dot" aria-hidden="true" />
+              <span>Cargando catálogo en tiempo real...</span>
+            </span>
+          ) : (
+            <span className="catalog-counter">
+              Mostrando <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'cuadernillo' : 'cuadernillos'}
+            </span>
+          )}
+          {!loading && hasActiveFilters && (
             <button className="catalog-clear-btn" type="button" onClick={handleResetFilters}>
               <RotateCcw size={14} />
               Limpiar filtros
@@ -109,6 +124,7 @@ export default function Catalog() {
         </div>
 
         <CatalogGrid
+          loading={loading}
           products={filteredProducts}
           onView={setSelected}
           onReset={handleResetFilters}

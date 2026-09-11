@@ -28,6 +28,7 @@ import {
   X,
 } from 'lucide-react';
 import ProductDetailDialog from '../components/catalog/ProductDetailDialog.jsx';
+import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import {
   subscribeCatalog,
   saveProductOnline,
@@ -175,6 +176,7 @@ export default function Admin() {
 
   const [firebaseOnline, setFirebaseOnline] = useState(isFirebaseConfigured());
   const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [isLoadingCatalog, setIsLoadingCatalog] = useState(true);
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('evolumind_admin_auth');
@@ -182,7 +184,15 @@ export default function Admin() {
       setAuthenticated(true);
     }
 
-    const unsubCatalog = subscribeCatalog(setProducts);
+    const unsubCatalog = subscribeCatalog(
+      (items) => {
+        setProducts(items);
+        setIsLoadingCatalog(false);
+      },
+      () => {
+        setIsLoadingCatalog(false);
+      }
+    );
     const unsubThemes = subscribeThemes(setThemes);
     const unsubCategories = subscribeCategories(setCategories);
 
@@ -629,7 +639,17 @@ export default function Admin() {
         </div>
       </header>
 
-      {showTrash ? (
+      {isLoadingCatalog ? (
+        <div className="admin-card-container">
+          <LoadingSpinner
+            size="lg"
+            message="Cargando catálogo en tiempo real..."
+            submessage="Conectando con la base de datos de Firebase"
+            minHeight="280px"
+            withIcon
+          />
+        </div>
+      ) : showTrash ? (
         <div className="admin-card-container">
           <div className="admin-section-header">
             <h3>Papelera de Cuadernillos ({deletedProducts.length})</h3>
@@ -686,13 +706,16 @@ export default function Admin() {
             <h3>Cuadernillos Activos ({activeProducts.length})</h3>
           </div>
 
-          <div className="admin-products-table">
-            {activeProducts.map((product) => {
-              const isHidden = product.status === 'oculto';
-              const coverImg = (Array.isArray(product.images) && product.images[0]) || product.imageUrl;
+          {activeProducts.length === 0 ? (
+            <div className="admin-empty-box">No hay cuadernillos activos. Haz clic en "Nuevo Cuadernillo" para publicar uno.</div>
+          ) : (
+            <div className="admin-products-table">
+              {activeProducts.map((product) => {
+                const isHidden = product.status === 'oculto';
+                const coverImg = (Array.isArray(product.images) && product.images[0]) || product.imageUrl;
 
-              return (
-                <div className={`admin-row-item ${isHidden ? 'hidden-row' : ''}`} key={product.id}>
+                return (
+                  <div className={`admin-row-item ${isHidden ? 'hidden-row' : ''}`} key={product.id}>
                   <div className="admin-row-badge" style={{ '--accent': product.accent || '#0057d9' }}>
                     {coverImg ? (
                       <img src={coverImg} alt={product.title} className="admin-badge-thumb" />
@@ -755,6 +778,7 @@ export default function Admin() {
               );
             })}
           </div>
+          )}
         </div>
       )}
 
@@ -1103,8 +1127,14 @@ export default function Admin() {
                           fileInputRef.current?.click();
                         }}
                       >
-                        <Upload size={15} />
-                        {isUploadingImages ? 'Cargando...' : 'Elegir Fotos'}
+                        {isUploadingImages ? (
+                          <LoadingSpinner inline size="sm" message="Procesando..." />
+                        ) : (
+                          <>
+                            <Upload size={15} />
+                            Elegir Fotos
+                          </>
+                        )}
                       </button>
                     </div>
 
@@ -1220,13 +1250,20 @@ export default function Admin() {
 
                   <div className="admin-form-sticky-footer">
                     <button className="button primary" type="submit" disabled={isSavingProduct}>
-                      <Save size={18} />
-                      {isSavingProduct ? 'Guardando en la nube...' : 'Guardar Cuadernillo'}
+                      {isSavingProduct ? (
+                        <LoadingSpinner inline size="sm" message="Guardando en la nube..." />
+                      ) : (
+                        <>
+                          <Save size={18} />
+                          Guardar Cuadernillo
+                        </>
+                      )}
                     </button>
                     <button
                       className="button ghost"
                       type="button"
                       onClick={() => setEditingProduct(null)}
+                      disabled={isSavingProduct}
                     >
                       Cancelar
                     </button>
