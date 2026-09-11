@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Clock, Mail, MessageSquare, RotateCcw, ShieldCheck } from 'lucide-react';
+import { subscribeCatalog } from '../../services/catalogService.js';
 
-const topicOptions = [
+const fallbackTopicOptions = [
   { value: 'ansiedad', label: 'Cuadernillo de Ansiedad (50.000 Gs.)' },
   { value: 'estres', label: 'Cuadernillo de Estrés y Sobrecarga (50.000 Gs.)' },
   { value: 'autoestima', label: 'Cuadernillo de Autoestima y Autoconcepto (50.000 Gs.)' },
@@ -22,17 +23,38 @@ export default function ContactForm() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [submittedSummary, setSubmittedSummary] = useState(null);
+  const [catalogProducts, setCatalogProducts] = useState([]);
+
+  useEffect(() => {
+    const unsub = subscribeCatalog((items) => {
+      if (Array.isArray(items)) {
+        setCatalogProducts(items.filter((p) => p.status !== 'eliminado' && p.status !== 'oculto'));
+      }
+    });
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const productParam = params.get('producto');
     if (productParam) {
-      const match = topicOptions.find((t) => t.value === productParam);
-      if (match) {
-        setFormData((prev) => ({ ...prev, topic: match.value }));
-      }
+      setFormData((prev) => ({ ...prev, topic: productParam }));
     }
   }, []);
+
+  const combinedTopicOptions = [
+    ...(catalogProducts.length > 0
+      ? catalogProducts.map((p) => ({
+          value: p.id,
+          label: `${p.title} (${p.price || 'Consultar'})`,
+        }))
+      : fallbackTopicOptions.slice(0, 5)),
+    { value: 'varios', label: 'Consulta general sobre varios cuadernillos' },
+    { value: 'orientacion', label: 'Orientación para elegir un cuadernillo' },
+    { value: 'academico', label: 'Consulta académica o institucional' },
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -147,11 +169,14 @@ export default function ContactForm() {
                   <span>Tema de tu consulta</span>
                   <select name="topic" value={formData.topic} onChange={handleChange}>
                     <option value="">Selecciona un tema o cuadernillo...</option>
-                    {topicOptions.map((opt) => (
+                    {combinedTopicOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
                       </option>
                     ))}
+                    {formData.topic && !combinedTopicOptions.some((o) => o.value === formData.topic) && (
+                      <option value={formData.topic}>Cuadernillo seleccionado ({formData.topic})</option>
+                    )}
                   </select>
                 </label>
               </div>

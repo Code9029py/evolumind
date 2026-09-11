@@ -430,6 +430,7 @@ export default function Admin() {
       category: finalCategory,
       price: formattedPrice,
       pages: formattedPages,
+      format: editingProduct.format?.trim() || 'PDF interactivo',
       images: finalImages,
       imageUrl: primaryImage,
     };
@@ -495,6 +496,7 @@ export default function Admin() {
       category: finalCat || 'Categoría',
       price: editingProduct.price ? sanitizePrice(editingProduct.price) || editingProduct.price : '50.000 Gs.',
       pages: editingProduct.pages ? sanitizePages(editingProduct.pages) || editingProduct.pages : '40 páginas',
+      format: editingProduct.format || 'PDF interactivo',
       shortDescription: editingProduct.shortDescription || 'Resumen breve para la tarjeta de catálogo...',
       longDescription: editingProduct.longDescription || 'Explicación detallada del contenido del cuadernillo...',
       targetAudience: editingProduct.targetAudience || 'Público objetivo y recomendaciones...',
@@ -932,6 +934,18 @@ export default function Admin() {
                           setEditingProduct({ ...editingProduct, pages: formatted });
                         }}
                         placeholder="Ej. 46 páginas"
+                      />
+                    </label>
+
+                    <label className="form-field">
+                      <span>Formato</span>
+                      <input
+                        type="text"
+                        value={editingProduct.format || ''}
+                        onChange={(e) =>
+                          setEditingProduct({ ...editingProduct, format: e.target.value })
+                        }
+                        placeholder="Ej. PDF interactivo"
                       />
                     </label>
 

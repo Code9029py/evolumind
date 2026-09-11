@@ -103,7 +103,7 @@ export default function ProductDetailDialog({ product, onClose }) {
                 </div>
                 <div className="spec-card">
                   <small>Formato</small>
-                  <strong>PDF Digital</strong>
+                  <strong>{product.format || 'PDF Digital'}</strong>
                 </div>
                 <div className="spec-card">
                   <small>Extensión</small>
