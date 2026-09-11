@@ -55,6 +55,15 @@ export default function ProductDetailDialog({ product, onClose, isPreview = fals
   const whatsappMessage = encodeURIComponent(dialogWhatsappText);
   const whatsappUrl = `https://wa.me/595981597595?text=${whatsappMessage}`;
 
+  const coverScale = Number(product.coverScale) || 90;
+  const coverOffsetY = Number(product.coverOffsetY) || 0;
+  const coverOffsetX = Number(product.coverOffsetX) || 0;
+  const coverStyle = {
+    '--cover-zoom': `${coverScale / 100}`,
+    '--cover-tx': `${coverOffsetX}px`,
+    '--cover-ty': `${coverOffsetY}px`,
+  };
+
   return (
     <div className="dialog-backdrop" role="presentation" onClick={onClose}>
       <section
@@ -80,7 +89,12 @@ export default function ProductDetailDialog({ product, onClose, isPreview = fals
                 {currentImage ? (
                   <>
                     <img src={currentImage} alt="" className="product-art-backdrop" aria-hidden="true" />
-                    <img src={currentImage} alt={product.title} className="product-cover-img" />
+                    <img
+                      src={currentImage}
+                      alt={product.title}
+                      className="product-cover-img"
+                      style={coverStyle}
+                    />
                     <div className="zoom-hint-pill">
                       <Maximize2 size={13} />
                       <span>Ampliar</span>
@@ -215,6 +229,9 @@ export default function ProductDetailDialog({ product, onClose, isPreview = fals
         onClose={() => setIsZoomOpen(false)}
         title={product.title}
         backdropColor={product.lightboxBg === 'accent' ? product.accent : product.lightboxBg}
+        initialScale={(Number(product.lightboxScale) || 100) / 100}
+        initialOffsetX={Number(product.lightboxOffsetX) || 0}
+        initialOffsetY={Number(product.lightboxOffsetY) || 0}
       />
     </div>
   );

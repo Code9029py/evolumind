@@ -18,6 +18,7 @@ import {
   RotateCcw,
   Save,
   Settings,
+  Sliders,
   Sparkles,
   Trash2,
   Upload,
@@ -28,6 +29,7 @@ import {
   X,
 } from 'lucide-react';
 import ProductDetailDialog from '../components/catalog/ProductDetailDialog.jsx';
+import ImageLightbox from '../components/common/ImageLightbox.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import {
   subscribeCatalog,
@@ -69,7 +71,13 @@ const initialProductForm = {
   format: 'PDF interactivo',
   featured: false,
   accent: '#0057d9',
+  coverScale: 90,
+  coverOffsetY: 0,
+  coverOffsetX: 0,
   lightboxBg: 'default',
+  lightboxScale: 100,
+  lightboxOffsetY: 0,
+  lightboxOffsetX: 0,
   images: [],
   imageUrl: '',
 };
@@ -166,6 +174,7 @@ export default function Admin() {
   // Live full-screen detail preview modal
   const [fullDetailPreview, setFullDetailPreview] = useState(null);
   const [previewImgIndex, setPreviewImgIndex] = useState(0);
+  const [isAdminLightboxOpen, setIsAdminLightboxOpen] = useState(false);
 
   // Manage themes / categories modal
   const [managerModalType, setManagerModalType] = useState(null); // 'themes' | 'categories' | null
@@ -294,7 +303,13 @@ export default function Admin() {
       status: commercialStatus,
       wasHidden: isHidden,
       images: imgList,
+      coverScale: product.coverScale !== undefined ? product.coverScale : 90,
+      coverOffsetY: product.coverOffsetY !== undefined ? product.coverOffsetY : 0,
+      coverOffsetX: product.coverOffsetX !== undefined ? product.coverOffsetX : 0,
       lightboxBg: product.lightboxBg || 'default',
+      lightboxScale: product.lightboxScale !== undefined ? product.lightboxScale : 100,
+      lightboxOffsetY: product.lightboxOffsetY !== undefined ? product.lightboxOffsetY : 0,
+      lightboxOffsetX: product.lightboxOffsetX !== undefined ? product.lightboxOffsetX : 0,
     });
   };
 
@@ -1085,111 +1100,645 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  {/* COLOR DE FONDO AL AMPLIAR (LIGHTBOX) */}
+                  {/* CONFIGURACIÓN DE TAMAÑO Y ENCUADRE EN TARJETA DE CATÁLOGO */}
+                  <div className="color-picker-box" style={{ marginTop: '0.75rem' }}>
+                    <div className="color-picker-label" style={{ justifyContent: 'space-between', width: '100%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                        <Sliders size={15} />
+                        <span>Encuadre y Tamaño en Tarjeta de Catálogo</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.74rem', color: 'var(--color-muted)', fontWeight: 600 }}>
+                          Zoom: {editingProduct.coverScale || 90}%
+                        </span>
+                        <button
+                          type="button"
+                          className="button ghost"
+                          style={{
+                            padding: '0.2rem 0.5rem',
+                            fontSize: '0.72rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            color: 'var(--color-muted)',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              coverScale: 90,
+                              coverOffsetY: 0,
+                              coverOffsetX: 0,
+                            })
+                          }
+                          title="Restablecer tamaño y posición de la tarjeta"
+                        >
+                          <RotateCcw size={11} />
+                          <span>Restablecer Tarjeta</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Tamaño / Zoom en Tarjeta (Escala real sin límites de contenedor) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.3rem' }}>
+                        <small style={{ color: 'var(--color-muted)', fontSize: '0.75rem', fontWeight: 600 }}>
+                          Tamaño / Zoom en Tarjeta:
+                        </small>
+                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                          {[
+                            { label: '70% (Chico)', val: 70 },
+                            { label: '90% (Estándar)', val: 90 },
+                            { label: '120% (Grande)', val: 120 },
+                            { label: '150% (Llenar Marco)', val: 150 },
+                          ].map((preset) => (
+                            <button
+                              key={preset.val}
+                              type="button"
+                              style={{
+                                padding: '0.15rem 0.45rem',
+                                fontSize: '0.7rem',
+                                borderRadius: '6px',
+                                border:
+                                  (Number(editingProduct.coverScale) || 90) === preset.val
+                                    ? '1px solid var(--color-primary)'
+                                    : '1px solid var(--color-border)',
+                                background:
+                                  (Number(editingProduct.coverScale) || 90) === preset.val
+                                    ? 'var(--color-primary)'
+                                    : '#fff',
+                                color:
+                                  (Number(editingProduct.coverScale) || 90) === preset.val
+                                    ? '#fff'
+                                    : 'inherit',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                              }}
+                              onClick={() =>
+                                setEditingProduct({
+                                  ...editingProduct,
+                                  coverScale: preset.val,
+                                })
+                              }
+                            >
+                              {preset.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <input
+                          type="range"
+                          min="50"
+                          max="180"
+                          step="5"
+                          value={Number(editingProduct.coverScale) || 90}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              coverScale: Number(e.target.value),
+                            })
+                          }
+                          style={{ flex: 1, accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, minWidth: '42px', textAlign: 'right' }}>
+                          {Number(editingProduct.coverScale) || 90}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Desplazamiento Vertical y Horizontal en Tarjeta */}
+                    <div
+                      style={{
+                        marginTop: '0.45rem',
+                        paddingTop: '0.45rem',
+                        borderTop: '1px solid rgba(0,0,0,0.06)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.45rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <small style={{ color: 'var(--color-muted)', fontSize: '0.75rem', fontWeight: 600 }}>
+                          Posición en Tarjeta (Vertical y Horizontal):
+                        </small>
+                        {((Number(editingProduct.coverOffsetX) || 0) !== 0 || (Number(editingProduct.coverOffsetY) || 0) !== 0) && (
+                          <button
+                            type="button"
+                            className="button ghost"
+                            style={{
+                              padding: '0.15rem 0.45rem',
+                              fontSize: '0.7rem',
+                              borderRadius: '4px',
+                              border: '1px solid var(--color-primary)',
+                              background: 'rgba(0, 87, 217, 0.08)',
+                              color: 'var(--color-primary)',
+                              cursor: 'pointer',
+                              fontWeight: 700,
+                            }}
+                            onClick={() =>
+                              setEditingProduct({
+                                ...editingProduct,
+                                coverOffsetX: 0,
+                                coverOffsetY: 0,
+                              })
+                            }
+                            title="Centrar posición horizontal y vertical (0, 0)"
+                          >
+                            Centrar Imagen (0, 0)
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Eje Vertical Y */}
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>
+                            Vertical Y (Mover Arriba / Abajo):
+                          </span>
+                          <div style={{ display: 'flex', gap: '0.2rem' }}>
+                            {[
+                              { label: 'Arriba (-20px)', val: -20 },
+                              { label: 'Centro (0px)', val: 0 },
+                              { label: 'Abajo (+20px)', val: 20 },
+                            ].map((preset) => (
+                              <button
+                                key={preset.val}
+                                type="button"
+                                style={{
+                                  padding: '0.1rem 0.4rem',
+                                  fontSize: '0.68rem',
+                                  borderRadius: '4px',
+                                  border:
+                                    (Number(editingProduct.coverOffsetY) || 0) === preset.val
+                                      ? '1px solid var(--color-primary)'
+                                      : '1px solid var(--color-border)',
+                                  background:
+                                    (Number(editingProduct.coverOffsetY) || 0) === preset.val
+                                      ? 'var(--color-primary)'
+                                      : '#fff',
+                                  color:
+                                    (Number(editingProduct.coverOffsetY) || 0) === preset.val
+                                      ? '#fff'
+                                      : 'inherit',
+                                  cursor: 'pointer',
+                                  fontWeight: 600,
+                                }}
+                                onClick={() =>
+                                  setEditingProduct({
+                                    ...editingProduct,
+                                    coverOffsetY: preset.val,
+                                  })
+                                }
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <input
+                            type="range"
+                            min="-80"
+                            max="80"
+                            step="2"
+                            value={Number(editingProduct.coverOffsetY) || 0}
+                            onChange={(e) =>
+                              setEditingProduct({
+                                ...editingProduct,
+                                coverOffsetY: Number(e.target.value),
+                              })
+                            }
+                            style={{ flex: 1, accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, minWidth: '42px', textAlign: 'right' }}>
+                            {(Number(editingProduct.coverOffsetY) || 0) > 0 ? '+' : ''}
+                            {Number(editingProduct.coverOffsetY) || 0}px
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Eje Horizontal X */}
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>
+                            Horizontal X (Izquierda / Derecha):
+                          </span>
+                          <div style={{ display: 'flex', gap: '0.2rem' }}>
+                            {[
+                              { label: 'Izq (-20px)', val: -20 },
+                              { label: 'Centro (0px)', val: 0 },
+                              { label: 'Der (+20px)', val: 20 },
+                            ].map((preset) => (
+                              <button
+                                key={preset.val}
+                                type="button"
+                                style={{
+                                  padding: '0.1rem 0.4rem',
+                                  fontSize: '0.68rem',
+                                  borderRadius: '4px',
+                                  border:
+                                    (Number(editingProduct.coverOffsetX) || 0) === preset.val
+                                      ? '1px solid var(--color-primary)'
+                                      : '1px solid var(--color-border)',
+                                  background:
+                                    (Number(editingProduct.coverOffsetX) || 0) === preset.val
+                                      ? 'var(--color-primary)'
+                                      : '#fff',
+                                  color:
+                                    (Number(editingProduct.coverOffsetX) || 0) === preset.val
+                                      ? '#fff'
+                                      : 'inherit',
+                                  cursor: 'pointer',
+                                  fontWeight: 600,
+                                }}
+                                onClick={() =>
+                                  setEditingProduct({
+                                    ...editingProduct,
+                                    coverOffsetX: preset.val,
+                                  })
+                                }
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <input
+                            type="range"
+                            min="-60"
+                            max="60"
+                            step="2"
+                            value={Number(editingProduct.coverOffsetX) || 0}
+                            onChange={(e) =>
+                              setEditingProduct({
+                                ...editingProduct,
+                                coverOffsetX: Number(e.target.value),
+                              })
+                            }
+                            style={{ flex: 1, accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, minWidth: '42px', textAlign: 'right' }}>
+                            {(Number(editingProduct.coverOffsetX) || 0) > 0 ? '+' : ''}
+                            {Number(editingProduct.coverOffsetX) || 0}px
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CONFIGURACIÓN DE MODO AMPLIADO (PANTALLA COMPLETA) */}
                   <div className="color-picker-box" style={{ marginTop: '0.75rem' }}>
                     <div className="color-picker-label" style={{ justifyContent: 'space-between', width: '100%' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                         <Maximize2 size={15} />
-                        <span>Fondo al Ampliar Imagen (Pantalla Completa)</span>
+                        <span>Configuración de Modo Ampliado (Pantalla Completa)</span>
                       </div>
-                      <span style={{ fontSize: '0.74rem', color: 'var(--color-muted)', fontWeight: 600 }}>
-                        {(!editingProduct.lightboxBg || editingProduct.lightboxBg === 'default')
-                          ? 'Predeterminado (Oscuro)'
-                          : editingProduct.lightboxBg === 'accent'
-                          ? 'Mismo de la Portada'
-                          : editingProduct.lightboxBg}
-                      </span>
-                    </div>
-
-                    <div className="color-swatches-row">
-                      {/* Opción Predeterminada (Obsidiana con degradado) */}
-                      <button
-                        type="button"
-                        className={`color-swatch-btn ${
-                          !editingProduct.lightboxBg || editingProduct.lightboxBg === 'default'
-                            ? 'active-swatch'
-                            : ''
-                        }`}
-                        style={{
-                          background: 'linear-gradient(135deg, #060a18 0%, #162038 100%)',
-                          border: '2px solid rgba(255, 255, 255, 0.5)',
-                        }}
-                        onClick={() =>
-                          setEditingProduct({ ...editingProduct, lightboxBg: 'default' })
-                        }
-                        title="Predeterminado (Oscuro Obsidiana con desenfoque)"
-                      >
-                        {(!editingProduct.lightboxBg || editingProduct.lightboxBg === 'default') && (
-                          <Check size={14} color="#fff" />
-                        )}
-                      </button>
-
-                      {/* Presets específicos */}
-                      {LIGHTBOX_BG_PRESETS.map((preset) => (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.74rem', color: 'var(--color-muted)', fontWeight: 600 }}>
+                          Inicial: {editingProduct.lightboxScale || 100}%
+                        </span>
                         <button
-                          key={preset.value}
                           type="button"
-                          className={`color-swatch-btn ${
-                            editingProduct.lightboxBg === preset.value ? 'active-swatch' : ''
-                          }`}
+                          className="button ghost"
                           style={{
-                            backgroundColor: preset.value,
-                            border: preset.value === '#000000' ? '2px solid #475569' : '2.5px solid white',
+                            padding: '0.2rem 0.5rem',
+                            fontSize: '0.72rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            color: 'var(--color-muted)',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
                           }}
                           onClick={() =>
-                            setEditingProduct({ ...editingProduct, lightboxBg: preset.value })
+                            setEditingProduct({
+                              ...editingProduct,
+                              lightboxScale: 100,
+                              lightboxOffsetY: 0,
+                              lightboxOffsetX: 0,
+                              lightboxBg: 'default',
+                            })
                           }
-                          title={preset.name}
+                          title="Restablecer valores iniciales del modo ampliado"
                         >
-                          {editingProduct.lightboxBg === preset.value && (
+                          <RotateCcw size={11} />
+                          <span>Restablecer Visor</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Color de Fondo del Visor */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                        <small style={{ color: 'var(--color-muted)', fontSize: '0.75rem', fontWeight: 600 }}>
+                          Color de fondo al ampliar:
+                        </small>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>
+                          {(!editingProduct.lightboxBg || editingProduct.lightboxBg === 'default')
+                            ? 'Predeterminado (Oscuro)'
+                            : editingProduct.lightboxBg === 'accent'
+                            ? 'Mismo de la Portada'
+                            : editingProduct.lightboxBg}
+                        </span>
+                      </div>
+
+                      <div className="color-swatches-row">
+                        {/* Opción Predeterminada */}
+                        <button
+                          type="button"
+                          className={`color-swatch-btn ${
+                            !editingProduct.lightboxBg || editingProduct.lightboxBg === 'default'
+                              ? 'active-swatch'
+                              : ''
+                          }`}
+                          style={{
+                            background: 'linear-gradient(135deg, #060a18 0%, #162038 100%)',
+                            border: '2px solid rgba(255, 255, 255, 0.5)',
+                          }}
+                          onClick={() =>
+                            setEditingProduct({ ...editingProduct, lightboxBg: 'default' })
+                          }
+                          title="Predeterminado (Oscuro Obsidiana)"
+                        >
+                          {(!editingProduct.lightboxBg || editingProduct.lightboxBg === 'default') && (
                             <Check size={14} color="#fff" />
                           )}
                         </button>
-                      ))}
 
-                      {/* Opción Mismo de la Portada */}
-                      <button
-                        type="button"
-                        className={`color-swatch-btn ${
-                          editingProduct.lightboxBg === 'accent' ? 'active-swatch' : ''
-                        }`}
-                        style={{
-                          backgroundColor: editingProduct.accent || '#0057d9',
-                        }}
-                        onClick={() =>
-                          setEditingProduct({ ...editingProduct, lightboxBg: 'accent' })
-                        }
-                        title="Mismo color que la portada"
-                      >
-                        {editingProduct.lightboxBg === 'accent' && <Check size={14} color="#fff" />}
-                      </button>
+                        {/* Presets específicos */}
+                        {LIGHTBOX_BG_PRESETS.map((preset) => (
+                          <button
+                            key={preset.value}
+                            type="button"
+                            className={`color-swatch-btn ${
+                              editingProduct.lightboxBg === preset.value ? 'active-swatch' : ''
+                            }`}
+                            style={{
+                              backgroundColor: preset.value,
+                              border: preset.value === '#000000' ? '2px solid #475569' : '2.5px solid white',
+                            }}
+                            onClick={() =>
+                              setEditingProduct({ ...editingProduct, lightboxBg: preset.value })
+                            }
+                            title={preset.name}
+                          >
+                            {editingProduct.lightboxBg === preset.value && (
+                              <Check size={14} color="#fff" />
+                            )}
+                          </button>
+                        ))}
 
-                      {/* Botón Personalizado con cuentagotas */}
-                      <button
-                        type="button"
-                        className="custom-color-picker-btn"
-                        onClick={() => lightboxColorInputRef.current?.click()}
-                        title="Seleccionar color de fondo de ampliación personalizado..."
-                      >
-                        <Pipette size={14} />
-                        <span>Personalizado</span>
-                        <input
-                          ref={lightboxColorInputRef}
-                          type="color"
-                          value={
-                            editingProduct.lightboxBg &&
-                            editingProduct.lightboxBg.startsWith('#')
-                              ? editingProduct.lightboxBg
-                              : '#060a18'
+                        {/* Opción Mismo de la Portada */}
+                        <button
+                          type="button"
+                          className={`color-swatch-btn ${
+                            editingProduct.lightboxBg === 'accent' ? 'active-swatch' : ''
+                          }`}
+                          style={{
+                            backgroundColor: editingProduct.accent || '#0057d9',
+                          }}
+                          onClick={() =>
+                            setEditingProduct({ ...editingProduct, lightboxBg: 'accent' })
                           }
+                          title="Mismo color que la portada"
+                        >
+                          {editingProduct.lightboxBg === 'accent' && <Check size={14} color="#fff" />}
+                        </button>
+
+                        {/* Botón Personalizado con cuentagotas */}
+                        <button
+                          type="button"
+                          className="custom-color-picker-btn"
+                          onClick={() => lightboxColorInputRef.current?.click()}
+                          title="Seleccionar color de fondo personalizado..."
+                        >
+                          <Pipette size={14} />
+                          <span>Personalizado</span>
+                          <input
+                            ref={lightboxColorInputRef}
+                            type="color"
+                            value={
+                              editingProduct.lightboxBg &&
+                              editingProduct.lightboxBg.startsWith('#')
+                                ? editingProduct.lightboxBg
+                                : '#060a18'
+                            }
+                            onChange={(e) =>
+                              setEditingProduct({
+                                ...editingProduct,
+                                lightboxBg: e.target.value,
+                              })
+                            }
+                            className="hidden-color-input"
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Zoom Inicial al Ampliar */}
+                    <div
+                      style={{
+                        marginTop: '0.45rem',
+                        paddingTop: '0.45rem',
+                        borderTop: '1px solid rgba(0,0,0,0.06)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.35rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.3rem' }}>
+                        <small style={{ color: 'var(--color-muted)', fontSize: '0.75rem', fontWeight: 600 }}>
+                          Zoom Inicial al Abrir en Pantalla Completa:
+                        </small>
+                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                          {[
+                            { label: '100% (Normal)', val: 100 },
+                            { label: '130% (Medio)', val: 130 },
+                            { label: '160% (Grande)', val: 160 },
+                            { label: '200% (Detalle)', val: 200 },
+                          ].map((preset) => (
+                            <button
+                              key={preset.val}
+                              type="button"
+                              style={{
+                                padding: '0.15rem 0.45rem',
+                                fontSize: '0.7rem',
+                                borderRadius: '6px',
+                                border:
+                                  (Number(editingProduct.lightboxScale) || 100) === preset.val
+                                    ? '1px solid var(--color-primary)'
+                                    : '1px solid var(--color-border)',
+                                background:
+                                  (Number(editingProduct.lightboxScale) || 100) === preset.val
+                                    ? 'var(--color-primary)'
+                                    : '#fff',
+                                color:
+                                  (Number(editingProduct.lightboxScale) || 100) === preset.val
+                                    ? '#fff'
+                                    : 'inherit',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                              }}
+                              onClick={() =>
+                                setEditingProduct({
+                                  ...editingProduct,
+                                  lightboxScale: preset.val,
+                                })
+                              }
+                            >
+                              {preset.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <input
+                          type="range"
+                          min="80"
+                          max="250"
+                          step="5"
+                          value={Number(editingProduct.lightboxScale) || 100}
                           onChange={(e) =>
                             setEditingProduct({
                               ...editingProduct,
-                              lightboxBg: e.target.value,
+                              lightboxScale: Number(e.target.value),
                             })
                           }
-                          className="hidden-color-input"
+                          style={{ flex: 1, accentColor: 'var(--color-primary)', cursor: 'pointer' }}
                         />
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, minWidth: '42px', textAlign: 'right' }}>
+                          {Number(editingProduct.lightboxScale) || 100}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Posición Inicial en Modo Ampliado */}
+                    <div
+                      style={{
+                        marginTop: '0.45rem',
+                        paddingTop: '0.45rem',
+                        borderTop: '1px solid rgba(0,0,0,0.06)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.45rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <small style={{ color: 'var(--color-muted)', fontSize: '0.75rem', fontWeight: 600 }}>
+                          Posición Inicial al Abrir (Vertical y Horizontal):
+                        </small>
+                        {((Number(editingProduct.lightboxOffsetX) || 0) !== 0 || (Number(editingProduct.lightboxOffsetY) || 0) !== 0) && (
+                          <button
+                            type="button"
+                            className="button ghost"
+                            style={{
+                              padding: '0.15rem 0.45rem',
+                              fontSize: '0.7rem',
+                              borderRadius: '4px',
+                              border: '1px solid var(--color-primary)',
+                              background: 'rgba(0, 87, 217, 0.08)',
+                              color: 'var(--color-primary)',
+                              cursor: 'pointer',
+                              fontWeight: 700,
+                            }}
+                            onClick={() =>
+                              setEditingProduct({
+                                ...editingProduct,
+                                lightboxOffsetX: 0,
+                                lightboxOffsetY: 0,
+                              })
+                            }
+                            title="Centrar posición inicial del visor (0, 0)"
+                          >
+                            Centrar Visor (0, 0)
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Eje Vertical Lightbox */}
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>
+                            Vertical Y Inicial (Mover Arriba / Abajo):
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <input
+                            type="range"
+                            min="-150"
+                            max="150"
+                            step="5"
+                            value={Number(editingProduct.lightboxOffsetY) || 0}
+                            onChange={(e) =>
+                              setEditingProduct({
+                                ...editingProduct,
+                                lightboxOffsetY: Number(e.target.value),
+                              })
+                            }
+                            style={{ flex: 1, accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, minWidth: '42px', textAlign: 'right' }}>
+                            {(Number(editingProduct.lightboxOffsetY) || 0) > 0 ? '+' : ''}
+                            {Number(editingProduct.lightboxOffsetY) || 0}px
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Eje Horizontal Lightbox */}
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>
+                            Horizontal X Inicial (Izquierda / Derecha):
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <input
+                            type="range"
+                            min="-150"
+                            max="150"
+                            step="5"
+                            value={Number(editingProduct.lightboxOffsetX) || 0}
+                            onChange={(e) =>
+                              setEditingProduct({
+                                ...editingProduct,
+                                lightboxOffsetX: Number(e.target.value),
+                              })
+                            }
+                            style={{ flex: 1, accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, minWidth: '42px', textAlign: 'right' }}>
+                            {(Number(editingProduct.lightboxOffsetX) || 0) > 0 ? '+' : ''}
+                            {Number(editingProduct.lightboxOffsetX) || 0}px
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Botón para Probar Modo Ampliado en vivo */}
+                    <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                      <button
+                        type="button"
+                        className="button secondary small-btn"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          fontSize: '0.75rem',
+                          padding: '0.35rem 0.75rem',
+                        }}
+                        onClick={() => setIsAdminLightboxOpen(true)}
+                        disabled={!livePreviewProduct?.images || livePreviewProduct.images.length === 0}
+                        title="Abrir el visor a pantalla completa con estos ajustes para probarlo"
+                      >
+                        <Eye size={13} />
+                        <span>Probar cómo se ve ampliado</span>
                       </button>
                     </div>
                   </div>
@@ -1446,6 +1995,11 @@ export default function Admin() {
                               }
                               alt={livePreviewProduct?.title}
                               className="product-cover-img"
+                              style={{
+                                '--cover-zoom': `${(Number(editingProduct.coverScale) || 90) / 100}`,
+                                '--cover-tx': `${editingProduct.coverOffsetX || 0}px`,
+                                '--cover-ty': `${editingProduct.coverOffsetY || 0}px`,
+                              }}
                             />
                           </>
                         ) : (
@@ -1586,6 +2140,26 @@ export default function Admin() {
           product={fullDetailPreview}
           onClose={() => setFullDetailPreview(null)}
           isPreview={true}
+        />
+      )}
+
+      {/* MODAL LIGHTBOX PREVIEW EN MODO ADMIN */}
+      {isAdminLightboxOpen && livePreviewProduct?.images && livePreviewProduct.images.length > 0 && (
+        <ImageLightbox
+          isOpen={isAdminLightboxOpen}
+          images={livePreviewProduct.images}
+          currentIndex={previewImgIndex}
+          onIndexChange={setPreviewImgIndex}
+          onClose={() => setIsAdminLightboxOpen(false)}
+          title={livePreviewProduct.title}
+          backdropColor={
+            editingProduct.lightboxBg === 'accent'
+              ? editingProduct.accent
+              : editingProduct.lightboxBg
+          }
+          initialScale={(Number(editingProduct.lightboxScale) || 100) / 100}
+          initialOffsetX={Number(editingProduct.lightboxOffsetX) || 0}
+          initialOffsetY={Number(editingProduct.lightboxOffsetY) || 0}
         />
       )}
 

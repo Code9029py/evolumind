@@ -53,6 +53,15 @@ export default function ProductCard({ product, onView }) {
   const whatsappMessage = encodeURIComponent(defaultMsg);
   const whatsappUrl = `https://wa.me/595981597595?text=${whatsappMessage}`;
 
+  const coverScale = Number(product.coverScale) || 90;
+  const coverOffsetY = Number(product.coverOffsetY) || 0;
+  const coverOffsetX = Number(product.coverOffsetX) || 0;
+  const coverStyle = {
+    '--cover-zoom': `${coverScale / 100}`,
+    '--cover-tx': `${coverOffsetX}px`,
+    '--cover-ty': `${coverOffsetY}px`,
+  };
+
   return (
     <article className="product-card">
       <div
@@ -64,7 +73,13 @@ export default function ProductCard({ product, onView }) {
         {currentImage ? (
           <>
             <img src={currentImage} alt="" className="product-art-backdrop" aria-hidden="true" />
-            <img src={currentImage} alt={product.title} className="product-cover-img" loading="lazy" />
+            <img
+              src={currentImage}
+              alt={product.title}
+              className="product-cover-img"
+              style={coverStyle}
+              loading="lazy"
+            />
             <button
               type="button"
               className="card-quick-zoom-btn"
@@ -177,6 +192,9 @@ export default function ProductCard({ product, onView }) {
         onClose={() => setIsZoomOpen(false)}
         title={product.title}
         backdropColor={product.lightboxBg === 'accent' ? product.accent : product.lightboxBg}
+        initialScale={(Number(product.lightboxScale) || 100) / 100}
+        initialOffsetX={Number(product.lightboxOffsetX) || 0}
+        initialOffsetY={Number(product.lightboxOffsetY) || 0}
       />
     </article>
   );
