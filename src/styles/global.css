@@ -2990,6 +2990,58 @@ main {
   }
 }
 
+@media (max-width: 480px) {
+  .navbar {
+    width: calc(100% - 16px);
+    margin-top: 8px;
+    padding: 8px 12px;
+  }
+
+  .brand-text {
+    font-size: 1.25rem;
+  }
+
+  .page,
+  .home-page-container {
+    width: calc(100% - 20px);
+  }
+
+  .hero-copy h1 {
+    font-size: 1.75rem;
+  }
+
+  .admin-login-box {
+    padding: 1.8rem 1.1rem;
+    border-radius: 20px;
+  }
+
+  .admin-topbar h1 {
+    font-size: 1.4rem;
+  }
+
+  .admin-topbar-actions {
+    width: 100%;
+  }
+
+  .admin-topbar-actions button {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .dialog-spec-item .spec-value {
+    font-size: 0.8rem;
+  }
+
+  .dialog-spec-item.price-spec .spec-value {
+    font-size: 0.95rem;
+  }
+
+  .product-footer {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+}
+
 /* Firebase Status Badge Styles */
 .admin-header-badge-row {
   display: flex;
