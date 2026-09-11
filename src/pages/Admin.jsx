@@ -1056,56 +1056,157 @@ export default function Admin() {
                     </label>
                   </div>
 
-                  {/* COLOR DE PORTADA CON PALETA Y BOTÓN PERSONALIZADO ELEGANTE */}
-                  <div className="color-picker-box">
-                    <div className="color-picker-label">
-                      <Palette size={16} />
-                      <span>Color de Portada / Tarjeta</span>
+                  {/* 1. IMÁGENES MÚLTIPLES: SUBIR DESDE ESTE DISPOSITIVO, REORDENAR Y ELIMINAR */}
+                  <div className="admin-images-section">
+                    <div className="images-section-header">
+                      <span className="images-section-title">
+                        <ImageIcon size={16} /> Fotos del Cuadernillo (Portada y Vistas)
+                      </span>
+                      <span className="images-counter-badge">
+                        {(editingProduct.images || []).length} foto(s)
+                      </span>
                     </div>
-                    <div className="color-swatches-row">
-                      {COLOR_PRESETS.map((preset) => (
-                        <button
-                          key={preset.value}
-                          type="button"
-                          className={`color-swatch-btn ${
-                            editingProduct.accent === preset.value ? 'active-swatch' : ''
-                          }`}
-                          style={{ backgroundColor: preset.value }}
-                          onClick={() => setEditingProduct({ ...editingProduct, accent: preset.value })}
-                          title={preset.name}
-                        >
-                          {editingProduct.accent === preset.value && <Check size={14} color="#fff" />}
-                        </button>
-                      ))}
 
-                      {/* Botón de color personalizado con degradado visual */}
+                    {/* INPUT OCULTO QUE ABRE EL SELECTOR NATIVO DE ARCHIVOS / CÁMARA */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/png, image/jpeg, image/webp, image/gif, image/svg+xml"
+                      multiple
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          handleProcessFiles(Array.from(e.target.files));
+                        }
+                      }}
+                    />
+
+                    {/* ZONA DE CARGA CON BOTÓN NATIVO Y ARRASTRE DE ARCHIVOS */}
+                    <div
+                      className={`admin-image-dropzone ${isDragging ? 'dragging' : ''}`}
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragging(true);
+                      }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          handleProcessFiles(Array.from(e.dataTransfer.files));
+                        }
+                      }}
+                    >
+                      <UploadCloud size={32} className="dropzone-icon" />
+                      <div className="dropzone-text">
+                        <strong>
+                          {isUploadingImages
+                            ? 'Procesando y optimizando fotos...'
+                            : 'Toca aquí para seleccionar fotos desde este dispositivo'}
+                        </strong>
+                        <small>Funciona en computadora y celular (JPG, WebP, PNG). La primera foto será la portada.</small>
+                      </div>
                       <button
                         type="button"
-                        className="custom-color-picker-btn"
-                        onClick={() => colorInputRef.current?.click()}
-                        title="Seleccionar color personalizado..."
+                        className="button primary small-btn dropzone-btn"
+                        disabled={isUploadingImages}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
                       >
-                        <Pipette size={14} />
-                        <span>Personalizado</span>
-                        <input
-                          ref={colorInputRef}
-                          type="color"
-                          value={editingProduct.accent || '#0057d9'}
-                          onChange={(e) =>
-                            setEditingProduct({ ...editingProduct, accent: e.target.value })
-                          }
-                          className="hidden-color-input"
-                        />
+                        {isUploadingImages ? (
+                          <LoadingSpinner inline size="sm" message="Procesando..." />
+                        ) : (
+                          <>
+                            <Upload size={15} />
+                            Elegir Fotos
+                          </>
+                        )}
                       </button>
                     </div>
+
+                    {editingProduct.images && editingProduct.images.length > 0 ? (
+                      <div className="images-thumbs-grid advanced-gallery-manager">
+                        {editingProduct.images.map((url, idx) => {
+                          const isCover = idx === 0;
+                          return (
+                            <div className={`thumb-item ${isCover ? 'cover-item' : ''}`} key={url.substring(0, 32) + idx}>
+                              <img src={url} alt={`Foto ${idx + 1}`} />
+                              <span className="thumb-index-tag">
+                                {isCover ? '★ Portada' : `#${idx + 1}`}
+                              </span>
+
+                              {/* Acciones directas y limpias: <, > y Eliminar */}
+                              <div className="thumb-actions-overlay">
+                                {idx > 0 && (
+                                  <button
+                                    type="button"
+                                    className="thumb-action-btn"
+                                    onClick={() => handleMoveImageLeft(idx)}
+                                    title="Mover hacia la izquierda"
+                                  >
+                                    <ChevronLeft size={13} />
+                                  </button>
+                                )}
+                                {idx < editingProduct.images.length - 1 && (
+                                  <button
+                                    type="button"
+                                    className="thumb-action-btn"
+                                    onClick={() => handleMoveImageRight(idx)}
+                                    title="Mover hacia la derecha"
+                                  >
+                                    <ChevronRight size={13} />
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  className="thumb-action-btn delete-btn"
+                                  onClick={() => handleRemoveImage(idx)}
+                                  title="Eliminar foto"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="no-images-help">
+                        <ImageIcon size={14} /> Si no agregas imágenes, se generará automáticamente la portada vectorial con el color seleccionado.
+                      </p>
+                    )}
+
+                    {/* OPCIONAL: PEGAR ENLACE DIRECTO O RUTA SI SE DESEA */}
+                    <details className="manual-url-details">
+                      <summary>¿Deseas agregar una imagen mediante enlace web o ruta local?</summary>
+                      <div className="add-image-bar" style={{ marginTop: '0.6rem' }}>
+                        <input
+                          type="text"
+                          placeholder="https://... o pega el enlace directo de la foto"
+                          value={newImageUrl}
+                          onChange={(e) => setNewImageUrl(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="button secondary small-btn"
+                          onClick={handleAddImage}
+                        >
+                          <Plus size={15} />
+                          Agregar Enlace
+                        </button>
+                      </div>
+                    </details>
                   </div>
 
-                  {/* CONFIGURACIÓN DE TAMAÑO Y ENCUADRE EN TARJETA DE CATÁLOGO */}
+                  {/* 2. CONFIGURACIÓN DE TARJETA DE CATÁLOGO (COLOR + TAMAÑO + ENCUADRE INTEGRADO) */}
                   <div className="color-picker-box" style={{ marginTop: '0.75rem' }}>
                     <div className="color-picker-label" style={{ justifyContent: 'space-between', width: '100%' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                         <Sliders size={15} />
-                        <span>Encuadre y Tamaño en Tarjeta de Catálogo</span>
+                        <span>Configuración de Tarjeta de Catálogo</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span style={{ fontSize: '0.74rem', color: 'var(--color-muted)', fontWeight: 600 }}>
@@ -1141,8 +1242,65 @@ export default function Admin() {
                       </div>
                     </div>
 
+                    {/* Color de Portada / Tarjeta */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                        <small style={{ color: 'var(--color-muted)', fontSize: '0.75rem', fontWeight: 600 }}>
+                          Color de fondo / acento de la tarjeta:
+                        </small>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>
+                          {COLOR_PRESETS.find((p) => p.value === editingProduct.accent)?.name || editingProduct.accent || '#0057d9'}
+                        </span>
+                      </div>
+                      <div className="color-swatches-row">
+                        {COLOR_PRESETS.map((preset) => (
+                          <button
+                            key={preset.value}
+                            type="button"
+                            className={`color-swatch-btn ${
+                              editingProduct.accent === preset.value ? 'active-swatch' : ''
+                            }`}
+                            style={{ backgroundColor: preset.value }}
+                            onClick={() => setEditingProduct({ ...editingProduct, accent: preset.value })}
+                            title={preset.name}
+                          >
+                            {editingProduct.accent === preset.value && <Check size={14} color="#fff" />}
+                          </button>
+                        ))}
+
+                        {/* Botón de color personalizado con degradado visual */}
+                        <button
+                          type="button"
+                          className="custom-color-picker-btn"
+                          onClick={() => colorInputRef.current?.click()}
+                          title="Seleccionar color personalizado..."
+                        >
+                          <Pipette size={14} />
+                          <span>Personalizado</span>
+                          <input
+                            ref={colorInputRef}
+                            type="color"
+                            value={editingProduct.accent || '#0057d9'}
+                            onChange={(e) =>
+                              setEditingProduct({ ...editingProduct, accent: e.target.value })
+                            }
+                            className="hidden-color-input"
+                          />
+                        </button>
+                      </div>
+                    </div>
+
                     {/* Tamaño / Zoom en Tarjeta (Escala real sin límites de contenedor) */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    <div
+                      style={{
+                        marginTop: '0.45rem',
+                        paddingTop: '0.45rem',
+                        borderTop: '1px solid rgba(0,0,0,0.06)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.35rem',
+                      }}
+                    >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.3rem' }}>
                         <small style={{ color: 'var(--color-muted)', fontSize: '0.75rem', fontWeight: 600 }}>
                           Tamaño / Zoom en Tarjeta:
@@ -1391,7 +1549,7 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  {/* CONFIGURACIÓN DE MODO AMPLIADO (PANTALLA COMPLETA) */}
+                  {/* 3. CONFIGURACIÓN DE MODO AMPLIADO (PANTALLA COMPLETA) */}
                   <div className="color-picker-box" style={{ marginTop: '0.75rem' }}>
                     <div className="color-picker-label" style={{ justifyContent: 'space-between', width: '100%' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
@@ -1743,8 +1901,8 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  {/* DESTACADO CHECKBOX */}
-                  <label className="admin-checkbox-card">
+                  {/* 4. DESTACADO CHECKBOX */}
+                  <label className="admin-checkbox-card" style={{ marginTop: '0.75rem' }}>
                     <input
                       type="checkbox"
                       checked={Boolean(editingProduct.featured)}
@@ -1757,151 +1915,6 @@ export default function Admin() {
                       <small>Se priorizará en la parte superior del catálogo público</small>
                     </div>
                   </label>
-
-                  {/* IMÁGENES MÚLTIPLES: SUBIR DESDE ESTE DISPOSITIVO, REORDENAR Y ELIMINAR */}
-                  <div className="admin-images-section">
-                    <div className="images-section-header">
-                      <span className="images-section-title">
-                        <ImageIcon size={16} /> Fotos del Cuadernillo (Portada y Vistas)
-                      </span>
-                      <span className="images-counter-badge">
-                        {(editingProduct.images || []).length} foto(s)
-                      </span>
-                    </div>
-
-                    {/* INPUT OCULTO QUE ABRE EL SELECTOR NATIVO DE ARCHIVOS / CÁMARA */}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/png, image/jpeg, image/webp, image/gif, image/svg+xml"
-                      multiple
-                      style={{ display: 'none' }}
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          handleProcessFiles(Array.from(e.target.files));
-                        }
-                      }}
-                    />
-
-                    {/* ZONA DE CARGA CON BOTÓN NATIVO Y ARRASTRE DE ARCHIVOS */}
-                    <div
-                      className={`admin-image-dropzone ${isDragging ? 'dragging' : ''}`}
-                      onClick={() => fileInputRef.current?.click()}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        setIsDragging(true);
-                      }}
-                      onDragLeave={() => setIsDragging(false)}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        setIsDragging(false);
-                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                          handleProcessFiles(Array.from(e.dataTransfer.files));
-                        }
-                      }}
-                    >
-                      <UploadCloud size={32} className="dropzone-icon" />
-                      <div className="dropzone-text">
-                        <strong>
-                          {isUploadingImages
-                            ? 'Procesando y optimizando fotos...'
-                            : 'Toca aquí para seleccionar fotos desde este dispositivo'}
-                        </strong>
-                        <small>Funciona en computadora y celular (JPG, WebP, PNG). La primera foto será la portada.</small>
-                      </div>
-                      <button
-                        type="button"
-                        className="button primary small-btn dropzone-btn"
-                        disabled={isUploadingImages}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          fileInputRef.current?.click();
-                        }}
-                      >
-                        {isUploadingImages ? (
-                          <LoadingSpinner inline size="sm" message="Procesando..." />
-                        ) : (
-                          <>
-                            <Upload size={15} />
-                            Elegir Fotos
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {editingProduct.images && editingProduct.images.length > 0 ? (
-                      <div className="images-thumbs-grid advanced-gallery-manager">
-                        {editingProduct.images.map((url, idx) => {
-                          const isCover = idx === 0;
-                          return (
-                            <div className={`thumb-item ${isCover ? 'cover-item' : ''}`} key={url.substring(0, 32) + idx}>
-                              <img src={url} alt={`Foto ${idx + 1}`} />
-                              <span className="thumb-index-tag">
-                                {isCover ? '★ Portada' : `#${idx + 1}`}
-                              </span>
-
-                              {/* Acciones directas y limpias: <, > y Eliminar */}
-                              <div className="thumb-actions-overlay">
-                                {idx > 0 && (
-                                  <button
-                                    type="button"
-                                    className="thumb-action-btn"
-                                    onClick={() => handleMoveImageLeft(idx)}
-                                    title="Mover hacia la izquierda"
-                                  >
-                                    <ChevronLeft size={13} />
-                                  </button>
-                                )}
-                                {idx < editingProduct.images.length - 1 && (
-                                  <button
-                                    type="button"
-                                    className="thumb-action-btn"
-                                    onClick={() => handleMoveImageRight(idx)}
-                                    title="Mover hacia la derecha"
-                                  >
-                                    <ChevronRight size={13} />
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  className="thumb-action-btn delete-btn"
-                                  onClick={() => handleRemoveImage(idx)}
-                                  title="Eliminar foto"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="no-images-help">
-                        <ImageIcon size={14} /> Si no agregas imágenes, se generará automáticamente la portada vectorial con el color seleccionado.
-                      </p>
-                    )}
-
-                    {/* OPCIONAL: PEGAR ENLACE DIRECTO O RUTA SI SE DESEA */}
-                    <details className="manual-url-details">
-                      <summary>¿Deseas agregar una imagen mediante enlace web o ruta local?</summary>
-                      <div className="add-image-bar" style={{ marginTop: '0.6rem' }}>
-                        <input
-                          type="text"
-                          placeholder="https://... o pega el enlace directo de la foto"
-                          value={newImageUrl}
-                          onChange={(e) => setNewImageUrl(e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          className="button secondary small-btn"
-                          onClick={handleAddImage}
-                        >
-                          <Plus size={15} />
-                          Agregar Enlace
-                        </button>
-                      </div>
-                    </details>
-                  </div>
 
                   <label className="form-field">
                     <span>Descripción Corta (Tarjeta del Catálogo)</span>
